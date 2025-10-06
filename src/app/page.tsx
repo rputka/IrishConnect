@@ -1,3 +1,9 @@
+/**
+ * Main homepage component for the IrishConnect student directory.
+ * This file contains the primary student search interface with advanced filtering capabilities,
+ * pagination, sorting options, and a chat/groups tab. Users can search for students by various
+ * criteria including major, class year, residence hall, courses, clubs, and more.
+ */
 "use client";
 
 import { useMemo, useState, useEffect } from "react";

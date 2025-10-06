@@ -1,3 +1,9 @@
+/**
+ * User registration page for new users to create an IrishConnect account.
+ * This file provides a registration form for ND ID and password creation,
+ * with password confirmation validation. Upon successful registration,
+ * users are redirected to the profile creation page.
+ */
 "use client";
 
 import { useState } from "react";

@@ -1,3 +1,9 @@
+/**
+ * Tutorial and help page explaining how to use the IrishConnect platform.
+ * This file provides user guidance on the application's key features including
+ * advanced filtering, the similarity algorithm, and group chat functionality.
+ * Features visual cards with images and detailed explanations.
+ */
 import Link from "next/link";
 import Image from "next/image";
 

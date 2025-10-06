@@ -1,3 +1,9 @@
+/**
+ * User login page for the IrishConnect student directory.
+ * This file provides a login form with ND ID and password fields, authentication
+ * logic against the mock student data, and redirects users to the main directory
+ * upon successful login. Includes Notre Dame branding and campus background imagery.
+ */
 "use client";
 
 import { useState, useEffect } from "react";

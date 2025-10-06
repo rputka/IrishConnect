@@ -1,3 +1,10 @@
+/**
+ * Simple dropdown select component for single-value selection.
+ * This file provides a clean, accessible dropdown component for selecting
+ * a single option from a list. Features include click-to-open/close functionality,
+ * visual selection indicators, and support for both upward and downward dropdown
+ * positioning.
+ */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";

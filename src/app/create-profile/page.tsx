@@ -1,3 +1,10 @@
+/**
+ * Profile creation page for new users to complete their student profile.
+ * This file contains a comprehensive form for users to enter their personal information,
+ * academic details, professional experience, courses, internships, clubs, sports,
+ * hobbies, and social media links. The form includes dynamic list management for
+ * adding/removing multiple entries in various sections.
+ */
 "use client";
 
 import { useState, useEffect } from "react";

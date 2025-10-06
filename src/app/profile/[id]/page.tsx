@@ -1,3 +1,9 @@
+/**
+ * Individual student profile page displaying detailed information about a specific student.
+ * This file shows comprehensive student details including basic information, academics,
+ * professional experience, and social activities. For profile owners, it includes
+ * edit and delete functionality with confirmation modals.
+ */
 "use client";
 
 import { useMemo, useState, useEffect } from "react";

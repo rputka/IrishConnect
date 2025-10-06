@@ -1,3 +1,9 @@
+/**
+ * Root layout component for the IrishConnect student directory application.
+ * This file provides the main layout structure including the header with navigation,
+ * authentication state management, and user dropdown menu. It also sets up global
+ * fonts, metadata, and authentication checks for protected routes.
+ */
 "use client";
 
 import { Geist, Geist_Mono } from "next/font/google";

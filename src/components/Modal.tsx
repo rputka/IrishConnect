@@ -1,3 +1,9 @@
+/**
+ * Reusable modal component for displaying overlay dialogs.
+ * This file provides a flexible modal component with backdrop click-to-close
+ * functionality, title support, and scrollable content area. Used throughout
+ * the application for confirmations, detailed views, and form dialogs.
+ */
 "use client";
 
 import { useEffect, useRef } from "react";

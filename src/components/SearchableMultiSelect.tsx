@@ -1,3 +1,10 @@
+/**
+ * Advanced multi-select dropdown component with search functionality.
+ * This file provides a sophisticated multi-select component that allows users
+ * to search through options, select multiple values, and manage selected items
+ * with tags. Features include real-time filtering, keyboard navigation,
+ * and customizable styling.
+ */
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";

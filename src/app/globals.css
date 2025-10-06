@@ -1,3 +1,8 @@
+/**
+ * Global CSS styles for the IrishConnect student directory application.
+ * This file imports Tailwind CSS and defines custom CSS variables for colors,
+ * fonts, and other global styling properties used throughout the application.
+ */
 @import "tailwindcss";
 
 :root {
