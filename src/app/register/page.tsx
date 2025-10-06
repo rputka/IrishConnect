@@ -12,32 +12,34 @@ import Image from "next/image";
 import Link from "next/link";
 
 export default function RegisterPage() {
+  // State for registration form fields and error handling
   const [studentId, setStudentId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
-  const handleRegister = (e: React.FormEvent) => {
+  function handleRegister(e: React.FormEvent) {
     e.preventDefault();
     setError("");
 
+    // Validate required fields
     if (!studentId || !password || !confirmPassword) {
       setError("Please fill out all fields.");
       return;
     }
 
+    // Validate password confirmation
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
 
-    // Mock success: log user in and redirect to create profile
+    // Mock authentication - in production this would validate against a database
     localStorage.setItem('isAuthenticated', 'true');
-    // The username is the student ID for now
     localStorage.setItem('currentUserId', studentId); 
     router.push("/create-profile");
-  };
+  }
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -67,7 +69,7 @@ export default function RegisterPage() {
         <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
-      {/* Registration Form */}
+      {/* Registration Form Container */}
       <div className="flex-1 flex items-center justify-center relative z-10">
         <div className="relative z-10 w-full max-w-md px-6">
           <div className="bg-white rounded-lg shadow-2xl p-8">

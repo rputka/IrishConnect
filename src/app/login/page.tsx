@@ -13,33 +13,37 @@ import Link from "next/link";
 import { STUDENTS } from "../../data/students";
 
 export default function LoginPage() {
+  // State for login form fields and error handling
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const router = useRouter();
 
   useEffect(() => {
+    // Redirect if already authenticated
     const isAuthenticated = localStorage.getItem('isAuthenticated');
     if (isAuthenticated === 'true') {
       router.push('/');
     }
   }, [router]);
 
-  const handleLogin = (e: React.FormEvent) => {
+  function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     
+    // Simple authentication check against mock data
     const user = STUDENTS.find(
       (student) => student.id === username && student.id === password
     );
 
     if (user) {
+      // Store authentication state in localStorage
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('currentUserId', user.id);
       router.push("/");
     } else {
       setError("Invalid username or password. Hint: use student ID for both.");
     }
-  };
+  }
 
   return (
     <div className="min-h-screen relative flex flex-col">
@@ -70,7 +74,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-black/30"></div>
       </div>
 
-      {/* Login Form */}
+      {/* Login Form Container */}
       <div className="flex-1 flex items-center justify-center relative z-10">
       <div className="relative z-10 w-full max-w-md px-6">
         {/* Profile Image - positioned to be half in, half out */}

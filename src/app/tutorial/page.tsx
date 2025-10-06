@@ -10,6 +10,7 @@ import Image from "next/image";
 export default function TutorialPage() {
   return (
     <div className="max-w-6xl mx-auto px-4 py-8">
+      {/* Page Header */}
       <div className="relative flex items-center justify-center mb-8">
         <Link href="/" className="absolute left-0 inline-flex items-center gap-2 rounded-md bg-[#0C2340] px-4 py-2 text-sm font-semibold text-white hover:brightness-110">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -21,8 +22,9 @@ export default function TutorialPage() {
         <h1 className="text-3xl font-semibold text-gray-800 tracking-tight">Tutorial & Help</h1>
       </div>
       
+      {/* Grid of Tutorial Cards */}
       <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-8">
-        {/* Advanced Filters Card */}
+        {/* Card for Advanced Filtering */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-md mx-auto">
           <div className="bg-purple-600 px-6 pt-8 pb-0">
             <div className="relative h-40 overflow-hidden">
@@ -45,9 +47,9 @@ export default function TutorialPage() {
             </p>
           </div>
         </div>
-        {/* Similarity Algorithm Card */}
+        {/* Card for Similarity Algorithm */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-md mx-auto">
-          {/* Blue Header with Algorithm Image */}
+          {/* Header with image */}
           <div className="bg-blue-800 px-6 pt-8 pb-0">
             <div className="relative h-40 overflow-hidden">
               <Image 
@@ -60,7 +62,7 @@ export default function TutorialPage() {
             </div>
           </div>
           
-          {/* White Content Area */}
+          {/* Content area */}
           <div className="p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-3">Similarity Algorithm</h1>
             <p className="text-gray-600 mb-4 leading-relaxed">
@@ -72,7 +74,7 @@ export default function TutorialPage() {
           </div>
         </div>
 
-        {/* Chat & Groups Card */}
+        {/* Card for Chat & Groups */}
         <div className="bg-white rounded-xl shadow-lg overflow-hidden max-w-md mx-auto">
           <div className="bg-orange-500 px-6 pt-8 pb-0">
             <div className="relative h-40 overflow-hidden">

@@ -8,12 +8,13 @@
 
 import { useEffect, useRef } from "react";
 
-type ModalProps = {
+// Props interface for the Modal component
+interface ModalProps {
   open: boolean;
   onClose: () => void;
   children: React.ReactNode;
   title?: string;
-};
+}
 
 export default function Modal({
   open,
@@ -25,14 +26,17 @@ export default function Modal({
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e: MouseEvent) => {
+    
+    // Handle clicking outside modal to close it
+    const handleClickOutside = (e: MouseEvent) => {
       if (!ref.current) return;
       if (!ref.current.contains(e.target as Node)) {
         onClose();
       }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [open, onClose]);
 
   if (!open) return null;
@@ -45,8 +49,24 @@ export default function Modal({
       >
         <div className="flex items-center justify-between">
           {title && <h2 className="text-xl font-bold">{title}</h2>}
-          <button onClick={onClose} className="ml-auto text-gray-500 hover:text-gray-800">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6L6 18"></path><path d="M6 6l12 12"></path></svg>
+          <button 
+            onClick={onClose} 
+            className="ml-auto text-gray-500 hover:text-gray-800"
+            aria-label="Close modal"
+          >
+            <svg 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+            >
+              <path d="M18 6L6 18"></path>
+              <path d="M6 6l12 12"></path>
+            </svg>
           </button>
         </div>
         <div className="mt-4 max-h-[70vh] overflow-auto">

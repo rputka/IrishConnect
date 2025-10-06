@@ -7,7 +7,7 @@
  */
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -59,23 +59,25 @@ export default function CreateProfilePage() {
   }, [router]);
 
   // --- Handlers for dynamic lists ---
-
-  const handleListChange = <T,>(
+  // Generic handler for updating object arrays (courses, internships)
+  function handleListChange<T>(
     list: T[],
     setter: React.Dispatch<React.SetStateAction<T[]>>,
     index: number,
     field: keyof T,
     value: string
-  ) => {
+  ) {
     const newList = [...list];
     newList[index] = { ...newList[index], [field]: value };
     setter(newList);
-  };
+  }
 
-  const handleStringListChange = (
+  // Handler for updating string arrays (clubs, sports, hobbies, etc.)
+  function handleStringListChange(
     setter: React.Dispatch<React.SetStateAction<string[]>>,
-    index: number, value: string
-  ) => {
+    index: number, 
+    value: string
+  ) {
     setter((prevList) => {
       const newList = [...prevList];
       newList[index] = value;
@@ -83,23 +85,27 @@ export default function CreateProfilePage() {
     });
   }
 
-  const addToList = <T,>(setter: React.Dispatch<React.SetStateAction<T[]>>, newItem: T) => {
+  // Generic functions for adding/removing items from dynamic lists
+  function addToList<T>(setter: React.Dispatch<React.SetStateAction<T[]>>, newItem: T) {
     setter((prevList) => [...prevList, newItem]);
-  };
+  }
 
-  const removeFromList = <T,>(
+  function removeFromList<T>(
     list: T[],
     setter: React.Dispatch<React.SetStateAction<T[]>>,
     index: number
-  ) => {
+  ) {
+    // Prevent removing the last item (keep at least one)
     if (list.length > 1) {
       const newList = list.filter((_, i) => i !== index);
       setter(newList);
     }
-  };
+  }
   
-  const handleSubmit = (e: React.FormEvent) => {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    
+    // Collect all form data
     const profileData = {
       ndId,
       firstName,
@@ -120,24 +126,39 @@ export default function CreateProfilePage() {
       linkedIn,
       socials
     };
+    
     console.log("Profile data:", profileData);
-    // In a real app, you'd save this to your database
+    // TODO: In a real app, save this to your database
     router.push("/");
-  };
+  }
 
   // --- Helper to create a styled text input ---
-  const TextInput: React.FC<{ label: string; value: string; onChange: (e: React.ChangeEvent<HTMLInputElement>) => void; placeholder?: string }> = ({ label, value, onChange, placeholder }) => (
-    <div>
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
-      <input
-        type="text"
-        value={value}
-        onChange={onChange}
-        placeholder={placeholder}
-        className="mt-1 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"
-      />
-    </div>
-  );
+  interface TextInputProps {
+    label: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    placeholder?: string;
+  }
+
+  function TextInput({ 
+    label, 
+    value, 
+    onChange, 
+    placeholder 
+  }: TextInputProps) {
+    return (
+      <div>
+        <label className="block text-sm font-medium text-gray-700">{label}</label>
+        <input
+          type="text"
+          value={value}
+          onChange={onChange}
+          placeholder={placeholder}
+          className="mt-1 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="bg-gray-50 min-h-screen">
@@ -158,7 +179,7 @@ export default function CreateProfilePage() {
 
             <form onSubmit={handleSubmit} className="space-y-8 pt-4">
               
-              {/* --- Basic Information --- */}
+              {/* --- Basic Information Section --- */}
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold border-b pb-2 text-gray-800">Basic Information</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -176,14 +197,14 @@ export default function CreateProfilePage() {
                 </div>
               </div>
 
-              {/* --- Academics --- */}
+              {/* --- Academics Section --- */}
                <div className="space-y-4">
                 <h2 className="text-lg font-semibold border-b pb-2 text-gray-800">Academics</h2>
                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <TextInput label="Major" value={major} onChange={(e) => setMajor(e.target.value)} />
                     <TextInput label="Minor (optional)" value={minor} onChange={(e) => setMinor(e.target.value)} />
                  </div>
-                 {/* Dynamic Courses */}
+                 {/* Dynamic list for adding courses */}
                  <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">Courses</label>
                     {courses.map((course, index) => (
@@ -198,7 +219,7 @@ export default function CreateProfilePage() {
                  </div>
               </div>
 
-              {/* --- Professional --- */}
+              {/* --- Professional Experience Section --- */}
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold border-b pb-2 text-gray-800">Professional Experience</h2>
                 <div>
@@ -225,7 +246,7 @@ export default function CreateProfilePage() {
                  </div>
               </div>
 
-              {/* --- Social --- */}
+              {/* --- Social & Extracurriculars Section --- */}
               <div className="space-y-4">
                 <h2 className="text-lg font-semibold border-b pb-2 text-gray-800">Social</h2>
                 <div>

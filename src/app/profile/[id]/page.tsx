@@ -17,17 +17,20 @@ import Image from "next/image";
 
 export default function ProfilePage() {
   const params = useParams<{ id: string }>();
+  // State for controlling modal visibility and profile ownership
   const [showClasses, setShowClasses] = useState(false);
   const [isOwnProfile, setIsOwnProfile] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   useEffect(() => {
+    // Check if this is the current user's own profile
     const currentUserId = localStorage.getItem('currentUserId');
     if (currentUserId && currentUserId === params.id) {
       setIsOwnProfile(true);
     }
   }, [params.id]);
 
+  // Find the student by ID from the URL parameter
   const student = useMemo(() => {
     return STUDENTS.find((s) => s.id === params.id);
   }, [params.id]);
@@ -56,7 +59,10 @@ export default function ProfilePage() {
         {isOwnProfile && (
           <div className="flex items-center gap-2">
             <button 
-              onClick={() => console.log('Edit profile clicked')}
+              onClick={() => {
+                // TODO: Implement edit profile functionality
+                console.log('Edit profile clicked');
+              }}
               className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200"
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
@@ -73,7 +79,7 @@ export default function ProfilePage() {
         )}
       </div>
 
-      {/* Banner */}
+      {/* Profile Header Banner */}
       <div className="relative rounded-xl overflow-hidden border shadow-sm h-64 sm:h-72">
         <Image
           src="/sunrisenotredame.jpg"
@@ -99,7 +105,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Sections */}
+      {/* Grid layout for profile information sections */}
       <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-8">
         <div className="bg-white rounded-lg border shadow-sm p-6">
           <h2 className="text-xl font-bold border-b pb-2">Basic Information</h2>
@@ -198,6 +204,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
+      {/* Modal for displaying detailed class list */}
       <Modal
         open={showClasses}
         onClose={() => setShowClasses(false)}
@@ -215,6 +222,7 @@ export default function ProfilePage() {
         </div>
       </Modal>
 
+      {/* Confirmation modal for deleting a profile */}
       <Modal
         open={showDeleteConfirm}
         onClose={() => setShowDeleteConfirm(false)}
@@ -233,10 +241,10 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={() => {
-                // In a real app, this would delete the profile and redirect
+                // TODO: Implement actual profile deletion
                 console.log('Profile deleted');
                 setShowDeleteConfirm(false);
-                // Could redirect to home page or show success message
+                // TODO: Redirect to home page or show success message
               }}
               className="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 transition-colors"
             >

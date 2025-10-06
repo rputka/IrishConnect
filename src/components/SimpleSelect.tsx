@@ -9,15 +9,20 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 
-export type Option = { label: string; value: string };
+// Type definition for select options
+export interface Option {
+  label: string;
+  value: string;
+}
 
-type SimpleSelectProps = {
+// Props interface for the SimpleSelect component
+interface SimpleSelectProps {
   value: string;
   onChange: (value: string) => void;
   options: Option[];
   placeholder?: string;
   direction?: "up" | "down";
-};
+}
 
 export default function SimpleSelect({
   value,
@@ -26,20 +31,26 @@ export default function SimpleSelect({
   placeholder = "Select an option",
   direction = "down",
 }: SimpleSelectProps) {
+  // State for dropdown visibility and ref for handling outside clicks
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    // Handle clicking outside dropdown to close it
+    const handleClickOutside = (e: MouseEvent) => {
       if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
+      if (!ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
     };
-    document.addEventListener("mousedown", handler);
-    return () => document.removeEventListener("mousedown", handler);
+    
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Get the display label for the selected value
   const selectedLabel = useMemo(() => {
-    return options.find((o) => o.value === value)?.label ?? "";
+    return options.find((option) => option.value === value)?.label ?? "";
   }, [options, value]);
 
   return (
@@ -47,8 +58,10 @@ export default function SimpleSelect({
       <div className="relative">
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          onClick={() => setOpen((isOpen) => !isOpen)}
           className="h-10 w-full rounded-md border border-gray-300 bg-white px-3 pr-8 text-left shadow-sm hover:bg-gray-50 focus:outline-none"
+          aria-expanded={open}
+          aria-haspopup="listbox"
         >
           <span className={`block text-sm ${selectedLabel ? "text-gray-900" : "text-gray-400"}`}>
             {selectedLabel || placeholder}
@@ -70,6 +83,7 @@ export default function SimpleSelect({
           </span>
         </button>
 
+        {/* Dropdown panel with options */}
         {open && (
           <div
             className={`absolute z-20 w-full rounded-md border border-gray-200 bg-white shadow-lg ${
@@ -77,21 +91,35 @@ export default function SimpleSelect({
             }`}
           >
             <div className="max-h-60 overflow-auto">
-              {options.map((o) => (
+              {options.map((option) => (
                 <button
-                  key={o.value}
+                  key={option.value}
                   type="button"
                   onClick={() => {
-                    onChange(o.value);
+                    onChange(option.value);
                     setOpen(false);
                   }}
                   className={`flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-gray-50 ${
-                    value === o.value ? "bg-[#0C2340]/5" : ""
+                    value === option.value ? "bg-[#0C2340]/5" : ""
                   }`}
+                  role="option"
+                  aria-selected={value === option.value}
                 >
-                  <span className="truncate">{o.label}</span>
-                  {value === o.value && (
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#0C2340]"><path d="M20 6L9 17l-5-5"/></svg>
+                  <span className="truncate">{option.label}</span>
+                  {value === option.value && (
+                    <svg 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="text-[#0C2340]"
+                    >
+                      <path d="M20 6L9 17l-5-5"/>
+                    </svg>
                   )}
                 </button>
               ))}

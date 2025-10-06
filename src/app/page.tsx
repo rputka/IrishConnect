@@ -6,49 +6,60 @@
  */
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import SimpleSelect from "../components/SimpleSelect";
-import Link from "next/link";
 import { Student, STUDENTS } from "../data/students";
 import { Group, GROUPS } from "../data/groups";
 
-const getPaginationItems = (
+/**
+ * Smart pagination generator that creates page numbers with ellipsis
+ * Handles cases like: [1] [2] [3] ... [10] or [1] ... [4] [5] [6] ... [10]
+ * This prevents pagination from becoming too cluttered with many pages
+ */
+function getPaginationItems(
   currentPage: number,
   totalPages: number,
   siblingCount = 1
-) => {
+) {
   const totalPageNumbers = siblingCount + 5;
 
+  // If we have few pages, show all of them
   if (totalPageNumbers >= totalPages) {
     return Array.from({ length: totalPages }, (_, i) => i + 1);
   }
 
+  // Calculate the range of pages around the current page
   const leftSiblingIndex = Math.max(currentPage - siblingCount, 1);
   const rightSiblingIndex = Math.min(
     currentPage + siblingCount,
     totalPages
   );
 
+  // Determine if we need ellipsis on either side
   const shouldShowLeftDots = leftSiblingIndex > 2;
   const shouldShowRightDots = rightSiblingIndex < totalPages - 2;
 
   const firstPageIndex = 1;
   const lastPageIndex = totalPages;
 
+  // Case 1: Show left range + ellipsis + last page
   if (!shouldShowLeftDots && shouldShowRightDots) {
     let leftItemCount = 3 + 2 * siblingCount;
     let leftRange = Array.from({ length: leftItemCount }, (_, i) => i + 1);
     return [...leftRange, '...', totalPages];
   }
 
+  // Case 2: Show first page + ellipsis + right range
   if (shouldShowLeftDots && !shouldShowRightDots) {
     let rightItemCount = 3 + 2 * siblingCount;
     let rightRange = Array.from({ length: rightItemCount }, (_, i) => totalPages - rightItemCount + 1 + i);
     return [firstPageIndex, '...', ...rightRange];
   }
 
+  // Case 3: Show first page + ellipsis + middle range + ellipsis + last page
   if (shouldShowLeftDots && shouldShowRightDots) {
     let middleRange = Array.from({ length: rightSiblingIndex - leftSiblingIndex + 1 }, (_, i) => leftSiblingIndex + i);
     return [firstPageIndex, '...', ...middleRange, '...', lastPageIndex];
@@ -57,6 +68,7 @@ const getPaginationItems = (
   return []; // Should not happen with the logic above
 };
 
+// Data for filter dropdowns - derived from the STUDENTS mock data
 const dorms = Array.from(new Set(STUDENTS.map((s) => s.dorm))).sort();
 const majors = Array.from(new Set(STUDENTS.map((s) => s.major))).sort();
 const classYears = Array.from(new Set(STUDENTS.map((s) => s.classYear))).sort(
@@ -76,6 +88,7 @@ export default function Home() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
 
+  // Authentication check on component mount
   useEffect(() => {
     const auth = localStorage.getItem("isAuthenticated");
     if (auth !== "true") {
@@ -85,17 +98,18 @@ export default function Home() {
     }
   }, [router]);
 
-  const [peopleQuery, setPeopleQuery] = useState("");
-  const [years, setYears] = useState<string[]>([]);
-  const [majorsSelected, setMajorsSelected] = useState<string[]>([]);
-  const [minorsSelected, setMinorsSelected] = useState<string[]>([]);
-  const [dormsSelected, setDormsSelected] = useState<string[]>([]);
-  const [hometownsSelected, setHometownsSelected] = useState<string[]>([]);
-  const [classesSelected, setClassesSelected] = useState<string[]>([]);
-  const [companiesSelected, setCompaniesSelected] = useState<string[]>([]);
-  const [clubsSelected, setClubsSelected] = useState<string[]>([]);
-  const [sportsSelected, setSportsSelected] = useState<string[]>([]);
-  const [interestsSelected, setInterestsSelected] = useState<string[]>([]);
+  // State management for all filters and UI controls
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedYears, setSelectedYears] = useState<string[]>([]);
+  const [selectedMajors, setSelectedMajors] = useState<string[]>([]);
+  const [selectedMinors, setSelectedMinors] = useState<string[]>([]);
+  const [selectedDorms, setSelectedDorms] = useState<string[]>([]);
+  const [selectedHometowns, setSelectedHometowns] = useState<string[]>([]);
+  const [selectedClasses, setSelectedClasses] = useState<string[]>([]);
+  const [selectedCompanies, setSelectedCompanies] = useState<string[]>([]);
+  const [selectedClubs, setSelectedClubs] = useState<string[]>([]);
+  const [selectedSports, setSelectedSports] = useState<string[]>([]);
+  const [selectedInterests, setSelectedInterests] = useState<string[]>([]);
   const [sortBy, setSortBy] = useState("first_az");
   const [showFilters, setShowFilters] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -105,8 +119,7 @@ export default function Home() {
   const [joinedGroups, setJoinedGroups] = useState<string[]>([]);
   const [groupSearchQuery, setGroupSearchQuery] = useState("");
 
-  // Use imported groups data
-
+  // Group chat functionality - filter and organize groups
   const filteredGroups = useMemo(() => {
     const q = groupSearchQuery.trim().toLowerCase();
     if (!q) return GROUPS;
@@ -115,6 +128,7 @@ export default function Home() {
     );
   }, [groupSearchQuery]);
 
+  // Separate groups into "My Groups" (joined) and "All Groups" (not joined)
   const myGroups = useMemo(() => {
     return filteredGroups.filter(group => joinedGroups.includes(group.id));
   }, [filteredGroups, joinedGroups]);
@@ -123,81 +137,100 @@ export default function Home() {
     return filteredGroups.filter(group => !joinedGroups.includes(group.id));
   }, [filteredGroups, joinedGroups]);
 
-  const clearAll = () => {
-    setPeopleQuery("");
-    setYears([]);
-    setMajorsSelected([]);
-    setMinorsSelected([]);
-    setDormsSelected([]);
-    setHometownsSelected([]);
-    setClassesSelected([]);
-    setCompaniesSelected([]);
-    setClubsSelected([]);
-    setSportsSelected([]);
-    setInterestsSelected([]);
+  // Function to clear all active filters and reset to default state
+  function clearAll() {
+    setSearchQuery("");
+    setSelectedYears([]);
+    setSelectedMajors([]);
+    setSelectedMinors([]);
+    setSelectedDorms([]);
+    setSelectedHometowns([]);
+    setSelectedClasses([]);
+    setSelectedCompanies([]);
+    setSelectedClubs([]);
+    setSelectedSports([]);
+    setSelectedInterests([]);
     setSortBy("first_az");
     setCurrentPage(1);
-  };
+  }
 
+  // Calculate the number of active filter categories
   const activeFilterCount = [
-    years.length,
-    majorsSelected.length,
-    minorsSelected.length,
-    dormsSelected.length,
-    hometownsSelected.length,
-    classesSelected.length,
-    companiesSelected.length,
-    clubsSelected.length,
-    sportsSelected.length,
-    interestsSelected.length,
+    selectedYears.length,
+    selectedMajors.length,
+    selectedMinors.length,
+    selectedDorms.length,
+    selectedHometowns.length,
+    selectedClasses.length,
+    selectedCompanies.length,
+    selectedClubs.length,
+    selectedSports.length,
+    selectedInterests.length,
   ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0);
 
+  // Memoized filtering logic - re-runs only when filter dependencies change
   const filtered = useMemo(() => {
-    const q = peopleQuery.trim().toLowerCase();
-    return STUDENTS.filter((s) => {
-      const matchesQuery = q
-        ? s.name.toLowerCase().includes(q)
-        : true;
-      const matchesYear = years.length
-        ? years.includes(String(s.classYear))
-        : true;
-      const matchesMajor = majorsSelected.length
-        ? majorsSelected.includes(s.major)
-        : true;
-      const matchesMinor = minorsSelected.length
-        ? !!s.minor && minorsSelected.includes(s.minor)
-        : true;
-      const matchesDorm = dormsSelected.length
-        ? dormsSelected.includes(s.dorm)
-        : true;
-      const matchesHometown = hometownsSelected.length
-        ? hometownsSelected.includes(s.hometown)
-        : true;
-      const matchesClass = classesSelected.length
-        ? classesSelected.every((t) =>
-            s.courses.some((semester) => semester.classes.some((c) => c.toLowerCase().includes(t.toLowerCase())))
+    const query = searchQuery.trim().toLowerCase();
+    
+    return STUDENTS.filter((student) => {
+      // Text search filter
+      const matchesQuery = query ? student.name.toLowerCase().includes(query) : true;
+      
+      // Basic filters - simple array includes checks
+      const matchesYear = selectedYears.length ? selectedYears.includes(String(student.classYear)) : true;
+      const matchesMajor = selectedMajors.length ? selectedMajors.includes(student.major) : true;
+      const matchesMinor = selectedMinors.length ? !!student.minor && selectedMinors.includes(student.minor) : true;
+      const matchesDorm = selectedDorms.length ? selectedDorms.includes(student.dorm) : true;
+      const matchesHometown = selectedHometowns.length ? selectedHometowns.includes(student.hometown) : true;
+      
+      // Complex filters that search within nested arrays
+      // For classes: check if ALL selected classes exist in student's course history
+      const matchesClass = selectedClasses.length
+        ? selectedClasses.every((classQuery) =>
+            student.courses.some((semester) =>
+              semester.classes.some((className) =>
+                className.toLowerCase().includes(classQuery.toLowerCase())
+              )
+            )
           )
         : true;
-      const matchesCompanies = companiesSelected.length
-        ? companiesSelected.every((t) =>
-            s.internships.some((c) => c.company.toLowerCase().includes(t.toLowerCase()))
+        
+      // For internships: check if ALL selected companies exist in student's internship history
+      const matchesCompanies = selectedCompanies.length
+        ? selectedCompanies.every((companyQuery) =>
+            student.internships.some((internship) =>
+              internship.company.toLowerCase().includes(companyQuery.toLowerCase())
+            )
           )
         : true;
-      const matchesClubs = clubsSelected.length
-        ? clubsSelected.every((t) =>
-            s.clubs.some((c) => c.toLowerCase().includes(t.toLowerCase()))
+        
+      // For clubs: check if ALL selected clubs exist in student's club list
+      const matchesClubs = selectedClubs.length
+        ? selectedClubs.every((clubQuery) =>
+            student.clubs.some((club) =>
+              club.toLowerCase().includes(clubQuery.toLowerCase())
+            )
           )
         : true;
-      const matchesSports = sportsSelected.length
-        ? sportsSelected.every((t) =>
-            s.sports.some((sp) => sp.toLowerCase().includes(t.toLowerCase()))
+        
+      // For sports: check if ALL selected sports exist in student's sports list
+      const matchesSports = selectedSports.length
+        ? selectedSports.every((sportQuery) =>
+            student.sports.some((sport) =>
+              sport.toLowerCase().includes(sportQuery.toLowerCase())
+            )
           )
         : true;
-      const matchesInterests = interestsSelected.length
-        ? interestsSelected.every((t) =>
-            s.careerInterests.some((i) => i.toLowerCase().includes(t.toLowerCase()))
+        
+      // For interests: check if ALL selected interests exist in student's career interests
+      const matchesInterests = selectedInterests.length
+        ? selectedInterests.every((interestQuery) =>
+            student.careerInterests.some((interest) =>
+              interest.toLowerCase().includes(interestQuery.toLowerCase())
+            )
           )
         : true;
+
       return (
         matchesQuery &&
         matchesYear &&
@@ -212,30 +245,36 @@ export default function Home() {
         matchesInterests
       );
     }).sort((a, b) => {
-      if (sortBy === "first_az") return a.name.localeCompare(b.name);
-      if (sortBy === "first_za") return b.name.localeCompare(a.name);
-      if (sortBy === "last_az")
-        return lastName(a.name).localeCompare(lastName(b.name));
-      if (sortBy === "last_za")
-        return lastName(b.name).localeCompare(lastName(a.name));
-      return 0; // default fallback
+      // Apply sorting based on selected option
+      switch (sortBy) {
+        case "first_az":
+          return a.name.localeCompare(b.name);
+        case "first_za":
+          return b.name.localeCompare(a.name);
+        case "last_az":
+          return lastName(a.name).localeCompare(lastName(b.name));
+        case "last_za":
+          return lastName(b.name).localeCompare(lastName(a.name));
+        default:
+          return 0;
+      }
     });
   }, [
-    peopleQuery,
-    years,
-    majorsSelected,
-    minorsSelected,
-    dormsSelected,
-    hometownsSelected,
-    classesSelected,
-    companiesSelected,
-    clubsSelected,
-    sportsSelected,
-    interestsSelected,
+    searchQuery,
+    selectedYears,
+    selectedMajors,
+    selectedMinors,
+    selectedDorms,
+    selectedHometowns,
+    selectedClasses,
+    selectedCompanies,
+    selectedClubs,
+    selectedSports,
+    selectedInterests,
     sortBy,
   ]);
 
-  // Pagination logic
+  // Pagination logic - calculate which profiles to show on current page
   const indexOfLastProfile = currentPage * profilesPerPage;
   const indexOfFirstProfile = indexOfLastProfile - profilesPerPage;
   const currentProfiles = filtered.slice(indexOfFirstProfile, indexOfLastProfile);
@@ -245,29 +284,31 @@ export default function Home() {
     setCurrentPage(pageNumber);
   };
 
-  // Scroll to top when page changes
+  // Scroll to top when page changes for better UX
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [currentPage]);
 
+  // Reset to page 1 whenever filters change
   useEffect(() => {
     setCurrentPage(1);
   }, [
-    peopleQuery,
-    years,
-    majorsSelected,
-    minorsSelected,
-    dormsSelected,
-    hometownsSelected,
-    classesSelected,
-    companiesSelected,
-    clubsSelected,
-    sportsSelected,
-    interestsSelected,
+    searchQuery,
+    selectedYears,
+    selectedMajors,
+    selectedMinors,
+    selectedDorms,
+    selectedHometowns,
+    selectedClasses,
+    selectedCompanies,
+    selectedClubs,
+    selectedSports,
+    selectedInterests,
     sortBy,
     profilesPerPage, // Reset page when profiles per page changes
   ]);
 
+  // Helper function to extract last name from full name
   function lastName(fullName: string): string {
     const parts = fullName.trim().split(/\s+/);
     return parts[parts.length - 1] || "";
@@ -303,6 +344,7 @@ export default function Home() {
         </button>
       </div>
 
+      {/* Main content area with conditional rendering for tabs */}
       {activeTab === "directory" && (
         <>
       <div className="flex items-center gap-x-3 gap-y-0 flex-wrap">
@@ -310,16 +352,16 @@ export default function Home() {
           <label className="block text-sm font-bold text-gray-700">Search for people</label>
           <div className="mt-1 relative">
             <input
-              value={peopleQuery}
-              onChange={(e) => setPeopleQuery(e.target.value)}
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Type and select a name"
               className="h-11 w-full rounded-md border border-[#0C2340] bg-white px-3 py-2 pl-9 pr-8 shadow-sm outline-none ring-0 focus:border-[#0C2340]"
             />
             <span className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-gray-400">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.3-4.3"></path></svg>
             </span>
-            {peopleQuery && (
-              <button aria-label="Clear" onClick={() => setPeopleQuery("")} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">×</button>
+            {searchQuery && (
+              <button aria-label="Clear" onClick={() => setSearchQuery("")} className="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600">×</button>
             )}
           </div>
         </div>
@@ -336,68 +378,69 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Advanced filters panel - toggles visibility */}
       {showFilters && (
         <div className="rounded-lg border border-[#E5E7EB] bg-white p-4 shadow-sm">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             <SearchableMultiSelect
               label="Class year"
               options={classYears.map(String)}
-              values={years}
-              onChange={setYears}
+              values={selectedYears}
+              onChange={setSelectedYears}
             />
             <SearchableMultiSelect
               label="Major(s)"
               options={majors}
-              values={majorsSelected}
-              onChange={setMajorsSelected}
+              values={selectedMajors}
+              onChange={setSelectedMajors}
             />
             <SearchableMultiSelect
               label="Minor(s)"
               options={minors}
-              values={minorsSelected}
-              onChange={setMinorsSelected}
+              values={selectedMinors}
+              onChange={setSelectedMinors}
             />
             <SearchableMultiSelect
               label="Residence hall"
               options={dorms}
-              values={dormsSelected}
-              onChange={setDormsSelected}
+              values={selectedDorms}
+              onChange={setSelectedDorms}
             />
             <SearchableMultiSelect
               label="Hometown"
               options={hometowns}
-              values={hometownsSelected}
-              onChange={setHometownsSelected}
+              values={selectedHometowns}
+              onChange={setSelectedHometowns}
             />
             <SearchableMultiSelect
               label="Specific class(es)"
               options={courses}
-              values={classesSelected}
-              onChange={setClassesSelected}
+              values={selectedClasses}
+              onChange={setSelectedClasses}
             />
             <SearchableMultiSelect
               label="Companies worked for"
               options={companies}
-              values={companiesSelected}
-              onChange={setCompaniesSelected}
+              values={selectedCompanies}
+              onChange={setSelectedCompanies}
             />
             <SearchableMultiSelect
               label="Clubs/organizations"
               options={clubs}
-              values={clubsSelected}
-              onChange={setClubsSelected}
+              values={selectedClubs}
+              onChange={setSelectedClubs}
             />
             <SearchableMultiSelect
               label="Sports"
               options={sportsOptions}
-              values={sportsSelected}
-              onChange={setSportsSelected}
+              values={selectedSports}
+              onChange={setSelectedSports}
             />
             <SearchableMultiSelect
               label="Hobbies/interests"
               options={interests}
-              values={interestsSelected}
-              onChange={setInterestsSelected}
+              values={selectedInterests}
+              onChange={setSelectedInterests}
             />
             <div className="flex flex-col">
               <div className="flex items-baseline">
@@ -413,7 +456,7 @@ export default function Home() {
               </div>
               <button
                 onClick={() => {
-                  // Add similarity algorithm logic here
+                  // TODO: Implement similarity algorithm logic
                   console.log('Similarity algorithm clicked');
                 }}
                 className="mt-1 flex h-11 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0C2340] focus:ring-offset-2"
@@ -425,6 +468,7 @@ export default function Home() {
         </div>
       )}
 
+      {/* Header for the student results list */}
         <div className="flex items-center justify-between mb-4">
           <div className="text-2xl font-bold text-gray-800">Users ({filtered.length})</div>
           <div className="flex items-center gap-2">
@@ -444,6 +488,7 @@ export default function Home() {
           </div>
         </div>
 
+        {/* Grid of student profile cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {currentProfiles.map((s) => (
             <article key={s.id} className="flex flex-col rounded-xl border border-gray-200 bg-white p-6 shadow-sm hover:shadow-lg transition-shadow duration-200">
@@ -502,6 +547,7 @@ export default function Home() {
           ))}
         </div>
 
+        {/* Pagination and page size controls */}
         {filtered.length > 0 && (
           <div className="mt-8 flex items-center justify-between">
             <div className="w-44" /> {/* Spacer */}
@@ -572,6 +618,7 @@ export default function Home() {
         </>
       )}
 
+      {/* Chat & Groups Tab */}
       {activeTab === "chat" && (
         <div className="flex h-[calc(100vh-180px)] bg-white rounded-lg shadow-lg overflow-hidden border border-[#0C2340]">
           {/* Left Sidebar - Group List */}
@@ -690,6 +737,7 @@ export default function Home() {
 
           {/* Right Side - Chat Area */}
           <div className="flex-1 flex flex-col">
+            {/* Complex conditional rendering based on group selection and join status */}
             {selectedGroup ? (
               joinedGroups.includes(selectedGroup.id) ? (
                 <>
@@ -777,7 +825,7 @@ export default function Home() {
                 </div>
               )
             ) : (
-              /* No Group Selected */
+              /* No Group Selected view */
               <div className="flex-1 flex flex-col">
                 {/* Header with Create Button */}
                 <div className="p-4 border-b border-[#0C2340] bg-white flex items-center justify-end" style={{ height: '65px' }}>
@@ -792,7 +840,7 @@ export default function Home() {
                   </button>
                 </div>
                 
-                {/* No Group Message */}
+                {/* Placeholder message when no group is selected */}
                 <div className="flex-1 flex items-center justify-center bg-gray-100">
                   <div className="text-center">
                     <div className="mx-auto w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mb-4">
