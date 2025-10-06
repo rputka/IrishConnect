@@ -1,10 +1,8 @@
 /**
  * Mock group/chat data for the IrishConnect student directory application.
- * 
- * IMPORTANT: This is temporary mock data that will be replaced once a database
- * is implemented. This file contains sample chat groups and conversations for
- * the group chat feature. These files should be removed once the backend
- * database system is set up.
+ *
+ * // TODO: DATABASE_IMPLEMENTATION - This entire file will be removed.
+ * All group and chat data will be fetched from the database via API calls.
  */
 export type Group = {
   id: string;

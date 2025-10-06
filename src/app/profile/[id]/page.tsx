@@ -11,6 +11,8 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 // NOTE: We are importing the `STUDENTS` mock data from the data file.
 // In a real app, you'd fetch this data based on the `id` param.
+// TODO: DATABASE_IMPLEMENTATION - Replace mock data import with an API call.
+// The student's data will be fetched from the database based on the `id` parameter from the URL.
 import { STUDENTS } from "../../../data/students";
 import Modal from "../../../components/Modal";
 import Image from "next/image";
@@ -24,6 +26,8 @@ export default function ProfilePage() {
 
   useEffect(() => {
     // Check if this is the current user's own profile
+    // TODO: DATABASE_IMPLEMENTATION - Replace localStorage with a proper session management system.
+    // This check should compare the `id` from the URL with the `id` from the user's session.
     const currentUserId = localStorage.getItem('currentUserId');
     if (currentUserId && currentUserId === params.id) {
       setIsOwnProfile(true);
@@ -31,6 +35,10 @@ export default function ProfilePage() {
   }, [params.id]);
 
   // Find the student by ID from the URL parameter
+  // TODO: DATABASE_IMPLEMENTATION - Replace this with a `useEffect` hook to fetch student data.
+  // This `useMemo` hook and the direct import of `STUDENTS` should be replaced with an
+  // asynchronous API call (e.g., in a `useEffect`) to fetch the student's data from the
+  // database using the `params.id`.
   const student = useMemo(() => {
     return STUDENTS.find((s) => s.id === params.id);
   }, [params.id]);
@@ -58,16 +66,14 @@ export default function ProfilePage() {
         </Link>
         {isOwnProfile && (
           <div className="flex items-center gap-2">
-            <button 
-              onClick={() => {
-                // TODO: Implement edit profile functionality
-                console.log('Edit profile clicked');
-              }}
-              className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200"
-            >
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-              Edit Profile
-            </button>
+            <Link href={`/profile/${params.id}/edit`}>
+              <button
+                className="inline-flex items-center gap-2 rounded-md bg-gray-100 px-3 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-200"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                Edit Profile
+              </button>
+            </Link>
             <button 
               onClick={() => setShowDeleteConfirm(true)}
               className="inline-flex items-center gap-2 rounded-md bg-red-50 px-3 py-2 text-sm font-semibold text-red-600 hover:bg-red-100"
@@ -241,7 +247,10 @@ export default function ProfilePage() {
             </button>
             <button
               onClick={() => {
-                // TODO: Implement actual profile deletion
+                // TODO: DATABASE_IMPLEMENTATION - Implement the "Delete Profile" feature.
+                // This should send an API call (e.g., DELETE /api/profiles/{id}) to the backend
+                // to delete the user's profile from the database. After successful deletion,
+                // the user should be logged out and redirected.
                 console.log('Profile deleted');
                 setShowDeleteConfirm(false);
                 // TODO: Redirect to home page or show success message

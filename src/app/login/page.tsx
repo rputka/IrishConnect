@@ -10,6 +10,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
+// TODO: DATABASE_IMPLEMENTATION - Replace mock data import with an API call.
+// The login logic will verify credentials against the user database.
 import { STUDENTS } from "../../data/students";
 
 export default function LoginPage() {
@@ -21,6 +23,8 @@ export default function LoginPage() {
 
   useEffect(() => {
     // Redirect if already authenticated
+    // TODO: DATABASE_IMPLEMENTATION - Replace localStorage with a proper session management system.
+    // This check should be done on the server-side or by validating a session token.
     const isAuthenticated = localStorage.getItem('isAuthenticated');
     if (isAuthenticated === 'true') {
       router.push('/');
@@ -30,6 +34,9 @@ export default function LoginPage() {
   function handleLogin(e: React.FormEvent) {
     e.preventDefault();
     
+    // TODO: DATABASE_IMPLEMENTATION - Replace this mock authentication with a real API call.
+    // This should send the username and password to a backend endpoint (e.g., POST /api/auth/login)
+    // which will validate the credentials against the database and return a session token.
     // Simple authentication check against mock data
     const user = STUDENTS.find(
       (student) => student.id === username && student.id === password
@@ -37,6 +44,9 @@ export default function LoginPage() {
 
     if (user) {
       // Store authentication state in localStorage
+      // TODO: DATABASE_IMPLEMENTATION - Replace localStorage with a secure session/token management system.
+      // On successful login, the server should return a token (e.g., JWT) to be stored securely
+      // (e.g., in an HttpOnly cookie) and used for authenticating subsequent requests.
       localStorage.setItem('isAuthenticated', 'true');
       localStorage.setItem('currentUserId', user.id);
       router.push("/");

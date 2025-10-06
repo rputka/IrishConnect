@@ -24,14 +24,14 @@ export default function SearchableMultiSelect({
   values,
   onChange,
 }: SearchableMultiSelectProps) {
-  // State for dropdown visibility, search query, and refs for handling clicks
+  // --- STATE MANAGEMENT ---
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
+  // --- SIDE EFFECTS ---
   useEffect(() => {
-    // Handle clicking outside component to close dropdown
     const handleClickOutside = (e: MouseEvent) => {
       if (!containerRef.current) return;
       if (!containerRef.current.contains(e.target as Node)) {
@@ -44,7 +44,6 @@ export default function SearchableMultiSelect({
   }, []);
 
   useEffect(() => {
-    // Focus input when dropdown opens, clear query when it closes
     if (open) {
       inputRef.current?.focus();
     } else {
@@ -52,7 +51,7 @@ export default function SearchableMultiSelect({
     }
   }, [open]);
 
-  // Filter options based on search query - real-time search as user types
+  // --- MEMOIZED VALUES ---
   const filtered = useMemo(() => {
     const searchQuery = query.trim().toLowerCase();
     const validOptions = options.filter(Boolean);
@@ -64,7 +63,7 @@ export default function SearchableMultiSelect({
     );
   }, [query, options]);
 
-  // Toggle option selection - add if not selected, remove if already selected
+  // --- HELPER FUNCTIONS ---
   function toggle(option: string) {
     const isSelected = values.includes(option);
     const newValues = isSelected 
@@ -73,7 +72,6 @@ export default function SearchableMultiSelect({
     onChange(newValues);
   }
 
-  // Clear all selected values
   function clear() {
     onChange([]);
   }

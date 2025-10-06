@@ -9,17 +9,16 @@ import Image from "next/image";
 
 export default function TutorialPage() {
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
+    <div className="max-w-6xl mx-auto px-4">
       {/* Page Header */}
-      <div className="relative flex items-center justify-center mb-8">
-        <Link href="/" className="absolute left-0 inline-flex items-center gap-2 rounded-md bg-[#0C2340] px-4 py-2 text-sm font-semibold text-white hover:brightness-110">
+      <div className="mb-4">
+        <Link href="/" className="inline-flex items-center gap-2 rounded-md bg-[#0C2340] px-4 py-2 text-sm font-semibold text-white hover:brightness-110">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M19 12H5"/>
             <path d="M12 19l-7-7 7-7"/>
           </svg>
           Back to Student Search
         </Link>
-        <h1 className="text-3xl font-semibold text-gray-800 tracking-tight">Tutorial & Help</h1>
       </div>
       
       {/* Grid of Tutorial Cards */}
@@ -90,7 +89,7 @@ export default function TutorialPage() {
           <div className="p-6">
             <h1 className="text-2xl font-bold text-gray-900 mb-3">Group Chats</h1>
             <p className="text-gray-600 mb-4 leading-relaxed">
-              Connect with classmates by creating or joining spontaneous groups for any activity, from a last-minute “Calculus III study session” to “pickup basketball tonight.” Each group has its own lightweight chat room so members can coordinate in real time.
+              Connect with classmates by creating or joining spontaneous groups for any activity, from a last-minute Calculus III study session to a pickup basketball game. Each group has its own lightweight chat room so members can coordinate in real time.
             </p>
             <p className="text-gray-600 mb-4 leading-relaxed">
               To join a conversation, simply click on a group from the list and confirm you want to join. To start your own, click the “Create New Group” button and wait for others to join.

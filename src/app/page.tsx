@@ -11,7 +11,11 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import SearchableMultiSelect from "../components/SearchableMultiSelect";
 import SimpleSelect from "../components/SimpleSelect";
+// TODO: DATABASE_IMPLEMENTATION - Replace mock data import with API call.
+// The `STUDENTS` data will be fetched from a database.
 import { Student, STUDENTS } from "../data/students";
+// TODO: DATABASE_IMPLEMENTATION - Replace mock data import with API call.
+// The `GROUPS` data will be fetched from a database.
 import { Group, GROUPS } from "../data/groups";
 
 /**
@@ -69,6 +73,9 @@ function getPaginationItems(
 };
 
 // Data for filter dropdowns - derived from the STUDENTS mock data
+// TODO: DATABASE_IMPLEMENTATION - Replace this with an API call to fetch filter options.
+// These filter options (dorms, majors, etc.) should be dynamically fetched
+// from the database, perhaps from a separate `filterOptions` endpoint.
 const dorms = Array.from(new Set(STUDENTS.map((s) => s.dorm))).sort();
 const majors = Array.from(new Set(STUDENTS.map((s) => s.major))).sort();
 const classYears = Array.from(new Set(STUDENTS.map((s) => s.classYear))).sort(
@@ -86,19 +93,9 @@ const interests = Array.from(new Set(STUDENTS.flatMap((s) => s.careerInterests))
 
 export default function Home() {
   const router = useRouter();
+
+  // --- STATE MANAGEMENT ---
   const [isLoading, setIsLoading] = useState(true);
-
-  // Authentication check on component mount
-  useEffect(() => {
-    const auth = localStorage.getItem("isAuthenticated");
-    if (auth !== "true") {
-      router.push("/login");
-    } else {
-      setIsLoading(false);
-    }
-  }, [router]);
-
-  // State management for all filters and UI controls
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedYears, setSelectedYears] = useState<string[]>([]);
   const [selectedMajors, setSelectedMajors] = useState<string[]>([]);
@@ -119,7 +116,41 @@ export default function Home() {
   const [joinedGroups, setJoinedGroups] = useState<string[]>([]);
   const [groupSearchQuery, setGroupSearchQuery] = useState("");
 
-  // Group chat functionality - filter and organize groups
+  // --- SIDE EFFECTS ---
+  useEffect(() => {
+    // TODO: DATABASE_IMPLEMENTATION - Replace localStorage with a proper session management system.
+    // User authentication status should be checked against the backend.
+    const auth = localStorage.getItem("isAuthenticated");
+    if (auth !== "true") {
+      router.push("/login");
+    } else {
+      setIsLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [currentPage]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [
+    searchQuery,
+    selectedYears,
+    selectedMajors,
+    selectedMinors,
+    selectedDorms,
+    selectedHometowns,
+    selectedClasses,
+    selectedCompanies,
+    selectedClubs,
+    selectedSports,
+    selectedInterests,
+    sortBy,
+    profilesPerPage,
+  ]);
+
+  // --- MEMOIZED VALUES ---
   const filteredGroups = useMemo(() => {
     const q = groupSearchQuery.trim().toLowerCase();
     if (!q) return GROUPS;
@@ -128,7 +159,6 @@ export default function Home() {
     );
   }, [groupSearchQuery]);
 
-  // Separate groups into "My Groups" (joined) and "All Groups" (not joined)
   const myGroups = useMemo(() => {
     return filteredGroups.filter(group => joinedGroups.includes(group.id));
   }, [filteredGroups, joinedGroups]);
@@ -137,54 +167,46 @@ export default function Home() {
     return filteredGroups.filter(group => !joinedGroups.includes(group.id));
   }, [filteredGroups, joinedGroups]);
 
-  // Function to clear all active filters and reset to default state
-  function clearAll() {
-    setSearchQuery("");
-    setSelectedYears([]);
-    setSelectedMajors([]);
-    setSelectedMinors([]);
-    setSelectedDorms([]);
-    setSelectedHometowns([]);
-    setSelectedClasses([]);
-    setSelectedCompanies([]);
-    setSelectedClubs([]);
-    setSelectedSports([]);
-    setSelectedInterests([]);
-    setSortBy("first_az");
-    setCurrentPage(1);
-  }
+  const activeFilterCount = useMemo(() => {
+    return [
+      selectedYears.length,
+      selectedMajors.length,
+      selectedMinors.length,
+      selectedDorms.length,
+      selectedHometowns.length,
+      selectedClasses.length,
+      selectedCompanies.length,
+      selectedClubs.length,
+      selectedSports.length,
+      selectedInterests.length,
+    ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0);
+  }, [
+    selectedYears,
+    selectedMajors,
+    selectedMinors,
+    selectedDorms,
+    selectedHometowns,
+    selectedClasses,
+    selectedCompanies,
+    selectedClubs,
+    selectedSports,
+    selectedInterests,
+  ]);
 
-  // Calculate the number of active filter categories
-  const activeFilterCount = [
-    selectedYears.length,
-    selectedMajors.length,
-    selectedMinors.length,
-    selectedDorms.length,
-    selectedHometowns.length,
-    selectedClasses.length,
-    selectedCompanies.length,
-    selectedClubs.length,
-    selectedSports.length,
-    selectedInterests.length,
-  ].reduce((a, b) => a + (b > 0 ? 1 : 0), 0);
-
-  // Memoized filtering logic - re-runs only when filter dependencies change
   const filtered = useMemo(() => {
+    // TODO: DATABASE_IMPLEMENTATION - Replace client-side filtering with server-side filtering.
+    // All filtering, searching, and sorting logic should be handled by the backend.
+    // The frontend should pass filter parameters to an API endpoint (e.g., /api/students?query=...&major=...)
+    // and receive the filtered and sorted results.
     const query = searchQuery.trim().toLowerCase();
     
     return STUDENTS.filter((student) => {
-      // Text search filter
       const matchesQuery = query ? student.name.toLowerCase().includes(query) : true;
-      
-      // Basic filters - simple array includes checks
       const matchesYear = selectedYears.length ? selectedYears.includes(String(student.classYear)) : true;
       const matchesMajor = selectedMajors.length ? selectedMajors.includes(student.major) : true;
       const matchesMinor = selectedMinors.length ? !!student.minor && selectedMinors.includes(student.minor) : true;
       const matchesDorm = selectedDorms.length ? selectedDorms.includes(student.dorm) : true;
       const matchesHometown = selectedHometowns.length ? selectedHometowns.includes(student.hometown) : true;
-      
-      // Complex filters that search within nested arrays
-      // For classes: check if ALL selected classes exist in student's course history
       const matchesClass = selectedClasses.length
         ? selectedClasses.every((classQuery) =>
             student.courses.some((semester) =>
@@ -194,8 +216,6 @@ export default function Home() {
             )
           )
         : true;
-        
-      // For internships: check if ALL selected companies exist in student's internship history
       const matchesCompanies = selectedCompanies.length
         ? selectedCompanies.every((companyQuery) =>
             student.internships.some((internship) =>
@@ -203,8 +223,6 @@ export default function Home() {
             )
           )
         : true;
-        
-      // For clubs: check if ALL selected clubs exist in student's club list
       const matchesClubs = selectedClubs.length
         ? selectedClubs.every((clubQuery) =>
             student.clubs.some((club) =>
@@ -212,8 +230,6 @@ export default function Home() {
             )
           )
         : true;
-        
-      // For sports: check if ALL selected sports exist in student's sports list
       const matchesSports = selectedSports.length
         ? selectedSports.every((sportQuery) =>
             student.sports.some((sport) =>
@@ -221,8 +237,6 @@ export default function Home() {
             )
           )
         : true;
-        
-      // For interests: check if ALL selected interests exist in student's career interests
       const matchesInterests = selectedInterests.length
         ? selectedInterests.every((interestQuery) =>
             student.careerInterests.some((interest) =>
@@ -245,7 +259,6 @@ export default function Home() {
         matchesInterests
       );
     }).sort((a, b) => {
-      // Apply sorting based on selected option
       switch (sortBy) {
         case "first_az":
           return a.name.localeCompare(b.name);
@@ -274,46 +287,42 @@ export default function Home() {
     sortBy,
   ]);
 
-  // Pagination logic - calculate which profiles to show on current page
-  const indexOfLastProfile = currentPage * profilesPerPage;
-  const indexOfFirstProfile = indexOfLastProfile - profilesPerPage;
-  const currentProfiles = filtered.slice(indexOfFirstProfile, indexOfLastProfile);
-  const totalPages = Math.ceil(filtered.length / profilesPerPage);
+  const currentProfiles = useMemo(() => {
+    const indexOfLastProfile = currentPage * profilesPerPage;
+    const indexOfFirstProfile = indexOfLastProfile - profilesPerPage;
+    return filtered.slice(indexOfFirstProfile, indexOfLastProfile);
+  }, [filtered, currentPage, profilesPerPage]);
 
-  const paginate = (pageNumber: number) => {
-    setCurrentPage(pageNumber);
-  };
+  const totalPages = useMemo(() => {
+    return Math.ceil(filtered.length / profilesPerPage);
+  }, [filtered, profilesPerPage]);
 
-  // Scroll to top when page changes for better UX
-  useEffect(() => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [currentPage]);
-
-  // Reset to page 1 whenever filters change
-  useEffect(() => {
+  // --- HELPER FUNCTIONS ---
+  function clearAll() {
+    setSearchQuery("");
+    setSelectedYears([]);
+    setSelectedMajors([]);
+    setSelectedMinors([]);
+    setSelectedDorms([]);
+    setSelectedHometowns([]);
+    setSelectedClasses([]);
+    setSelectedCompanies([]);
+    setSelectedClubs([]);
+    setSelectedSports([]);
+    setSelectedInterests([]);
+    setSortBy("first_az");
     setCurrentPage(1);
-  }, [
-    searchQuery,
-    selectedYears,
-    selectedMajors,
-    selectedMinors,
-    selectedDorms,
-    selectedHometowns,
-    selectedClasses,
-    selectedCompanies,
-    selectedClubs,
-    selectedSports,
-    selectedInterests,
-    sortBy,
-    profilesPerPage, // Reset page when profiles per page changes
-  ]);
+  }
 
-  // Helper function to extract last name from full name
+  function paginate(pageNumber: number) {
+    setCurrentPage(pageNumber);
+  }
+
   function lastName(fullName: string): string {
     const parts = fullName.trim().split(/\s+/);
     return parts[parts.length - 1] || "";
   }
-
+  
   if (isLoading) {
     return null;
   }
@@ -456,7 +465,9 @@ export default function Home() {
               </div>
               <button
                 onClick={() => {
-                  // TODO: Implement similarity algorithm logic
+                  // TODO: DATABASE_IMPLEMENTATION - Implement the similarity algorithm on the backend.
+                  // This should trigger an API call to an endpoint that calculates and returns
+                  // the most similar students based on the current user's profile.
                   console.log('Similarity algorithm clicked');
                 }}
                 className="mt-1 flex h-11 items-center justify-center rounded-md border border-gray-300 bg-white px-3 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-[#0C2340] focus:ring-offset-2"
@@ -815,7 +826,11 @@ export default function Home() {
                         {selectedGroup.description}
                       </p>
                       <button 
-                        onClick={() => setJoinedGroups([...joinedGroups, selectedGroup.id])}
+                        onClick={() => {
+                          // TODO: DATABASE_IMPLEMENTATION - Persist group membership in the database.
+                          // This should be an API call to an endpoint like `/api/groups/{groupId}/join`.
+                          setJoinedGroups([...joinedGroups, selectedGroup.id])
+                        }}
                         className="h-11 w-full max-w-xs mx-auto rounded-md bg-[#0C2340] px-4 text-sm font-bold text-white hover:brightness-110"
                       >
                         Join Group
@@ -836,6 +851,9 @@ export default function Home() {
                       <line x1="20" y1="8" x2="20" y2="14"/>
                       <line x1="23" y1="11" x2="17" y2="11"/>
                     </svg>
+                    {/* TODO: DATABASE_IMPLEMENTATION - Implement "Create New Group" functionality.
+                        This should open a modal or navigate to a new page to create a group,
+                        which would then make an API call to persist the new group in the database. */}
                     Create New Group
                   </button>
                 </div>

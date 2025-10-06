@@ -1,10 +1,13 @@
 /**
  * Mock student data for the IrishConnect student directory application.
- * 
+ *
  * IMPORTANT: This is temporary mock data that will be replaced once a database
  * is implemented. This file contains sample student profiles with comprehensive
  * information including academics, extracurriculars, and social details.
  * These files should be removed once the backend database system is set up.
+ *
+ * // TODO: DATABASE_IMPLEMENTATION - This entire file will be removed.
+ * All student data will be fetched from the database via API calls.
  */
 export type Student = {
   id: string;

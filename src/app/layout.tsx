@@ -53,6 +53,9 @@ export default function RootLayout({
     }
 
     // Authentication check - redirect to login if not authenticated (except on auth pages)
+    // TODO: DATABASE_IMPLEMENTATION - Replace localStorage with a proper session management system.
+    // This logic should be replaced with a check for a valid session token (e.g., from an HttpOnly cookie).
+    // This might be handled in middleware for better security and code organization.
     const authStatus = localStorage.getItem('isAuthenticated');
     const userId = localStorage.getItem('currentUserId');
     
@@ -129,6 +132,9 @@ export default function RootLayout({
                   {/* User dropdown menu */}
                   {isDropdownOpen && (
                     <div className="absolute right-0 top-full mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
+                      {/* TODO: DATABASE_IMPLEMENTATION - Fetch user data for the dropdown.
+                          The user's initials/profile picture in the dropdown trigger should be fetched
+                          from the database based on their session, not hardcoded. */}
                       <Link 
                         href={currentUserId ? `/profile/${currentUserId}` : "#"} 
                         className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -141,7 +147,7 @@ export default function RootLayout({
                         My Profile
                       </Link>
                       <a 
-                        href="mailto:rputka@nd.edu"
+                        href="mailto:rputka@nd.edu,jrelling@nd.edu,warmswor@nd.edu"
                         className="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         onClick={() => setIsDropdownOpen(false)}
                       >
@@ -166,6 +172,9 @@ export default function RootLayout({
                       <button 
                         onClick={() => {
                           // Handle user logout
+                          // TODO: DATABASE_IMPLEMENTATION - Implement proper logout functionality.
+                          // This should make an API call to a backend endpoint (e.g., POST /api/auth/logout)
+                          // to invalidate the user's session token on the server side.
                           setIsDropdownOpen(false);
                           localStorage.removeItem('isAuthenticated');
                           localStorage.removeItem('currentUserId');

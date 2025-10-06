@@ -35,6 +35,10 @@ export default function RegisterPage() {
       return;
     }
 
+    // TODO: DATABASE_IMPLEMENTATION - Replace this mock registration with a real API call.
+    // This should send the studentId and password to a backend endpoint (e.g., POST /api/auth/register)
+    // to create a new user in the database. Upon successful registration, the backend should
+    // return a session token, and the user should be logged in automatically.
     // Mock authentication - in production this would validate against a database
     localStorage.setItem('isAuthenticated', 'true');
     localStorage.setItem('currentUserId', studentId); 

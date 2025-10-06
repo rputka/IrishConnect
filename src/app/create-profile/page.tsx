@@ -7,7 +7,7 @@
  */
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
@@ -26,6 +26,7 @@ interface Internship {
 export default function CreateProfilePage() {
   const router = useRouter();
   const [ndId, setNdId] = useState("");
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // State for all form fields
   const [firstName, setFirstName] = useState("");
@@ -34,9 +35,9 @@ export default function CreateProfilePage() {
   const [graduationYear, setGraduationYear] = useState("");
   const [hometown, setHometown] = useState("");
   const [dorm, setDorm] = useState("");
-  const [profilePhotoUrl, setProfilePhotoUrl] = useState("");
-  const [major, setMajor] = useState("");
-  const [minor, setMinor] = useState("");
+  const [profilePhoto, setProfilePhoto] = useState<File | null>(null);
+  const [majors, setMajors] = useState<string[]>([""]);
+  const [minors, setMinors] = useState<string[]>([""]);
   
   const [courses, setCourses] = useState<Course[]>([{ name: "", crn: "", professor: "" }]);
   const [internships, setInternships] = useState<Internship[]>([{ company: "", role: "" }]);
@@ -49,6 +50,8 @@ export default function CreateProfilePage() {
 
   useEffect(() => {
     // Protect this page and get user ID
+    // TODO: DATABASE_IMPLEMENTATION - Replace localStorage with a proper session management system.
+    // This check should be done on the server-side or via an API call to validate the user's session.
     const auth = localStorage.getItem("isAuthenticated");
     const userId = localStorage.getItem("currentUserId");
     if (auth !== "true" || !userId) {
@@ -95,16 +98,16 @@ export default function CreateProfilePage() {
     setter: React.Dispatch<React.SetStateAction<T[]>>,
     index: number
   ) {
-    // Prevent removing the last item (keep at least one)
-    if (list.length > 1) {
-      const newList = list.filter((_, i) => i !== index);
-      setter(newList);
-    }
+    const newList = list.filter((_, i) => i !== index);
+    setter(newList);
   }
   
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     
+    // TODO: DATABASE_IMPLEMENTATION - Replace console.log with an API call to save the profile.
+    // This function should send the `profileData` to a backend endpoint (e.g., POST /api/profiles)
+    // to be saved in the database. It should also handle file uploads for the profile photo.
     // Collect all form data
     const profileData = {
       ndId,
@@ -114,9 +117,9 @@ export default function CreateProfilePage() {
       graduationYear,
       hometown,
       dorm,
-      profilePhotoUrl,
-      major,
-      minor,
+      profilePhoto,
+      majors,
+      minors,
       courses,
       internships,
       clubs,
@@ -130,34 +133,6 @@ export default function CreateProfilePage() {
     console.log("Profile data:", profileData);
     // TODO: In a real app, save this to your database
     router.push("/");
-  }
-
-  // --- Helper to create a styled text input ---
-  interface TextInputProps {
-    label: string;
-    value: string;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-    placeholder?: string;
-  }
-
-  function TextInput({ 
-    label, 
-    value, 
-    onChange, 
-    placeholder 
-  }: TextInputProps) {
-    return (
-      <div>
-        <label className="block text-sm font-medium text-gray-700">{label}</label>
-        <input
-          type="text"
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          className="mt-1 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"
-        />
-      </div>
-    );
   }
 
   return (
@@ -193,16 +168,72 @@ export default function CreateProfilePage() {
                   <TextInput label="Graduation Year" value={graduationYear} onChange={(e) => setGraduationYear(e.target.value)} placeholder="e.g., 2025"/>
                   <TextInput label="Hometown" value={hometown} onChange={(e) => setHometown(e.target.value)} placeholder="e.g., South Bend, IN"/>
                   <TextInput label="Dorm" value={dorm} onChange={(e) => setDorm(e.target.value)} />
-                  <TextInput label="Profile Photo URL" value={profilePhotoUrl} onChange={(e) => setProfilePhotoUrl(e.target.value)} placeholder="https://example.com/photo.jpg"/>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700">Profile Photo</label>
+                    <div className="mt-1 flex items-center gap-2">
+                        <label htmlFor="file-upload" className="cursor-pointer rounded-md border-0 text-sm font-semibold bg-[#0C2340] text-white hover:bg-[#0C2340]/90 px-4 h-11 inline-flex items-center shrink-0">
+                            Choose File
+                        </label>
+                        <input 
+                            id="file-upload"
+                            name="file-upload"
+                            type="file" 
+                            className="sr-only"
+                            ref={fileInputRef}
+                            onChange={(e) => {
+                                if (e.target.files && e.target.files[0]) {
+                                    setProfilePhoto(e.target.files[0]);
+                                } else {
+                                    setProfilePhoto(null);
+                                }
+                            }} 
+                            accept="image/*"
+                        />
+                        {profilePhoto ? (
+                            <div className="flex items-center gap-2 min-w-0">
+                                <span className="text-sm text-gray-600 truncate">{profilePhoto.name}</span>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setProfilePhoto(null);
+                                        if (fileInputRef.current) {
+                                            fileInputRef.current.value = "";
+                                        }
+                                    }}
+                                    className="h-9 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">
+                                    Remove
+                                </button>
+                            </div>
+                        ) : (
+                            <span className="text-sm text-gray-500">No file selected</span>
+                        )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* --- Academics Section --- */}
                <div className="space-y-4">
                 <h2 className="text-lg font-semibold border-b pb-2 text-gray-800">Academics</h2>
-                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <TextInput label="Major" value={major} onChange={(e) => setMajor(e.target.value)} />
-                    <TextInput label="Minor (optional)" value={minor} onChange={(e) => setMinor(e.target.value)} />
+                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Major(s)</label>
+                  {majors.map((major, index) => (
+                    <div key={index} className="flex items-center gap-2 mb-2">
+                      <input type="text" placeholder="Major" value={major} onChange={e => handleStringListChange(setMajors, index, e.target.value)} className="flex-grow h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
+                      <button type="button" onClick={() => removeFromList(majors, setMajors, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
+                    </div>
+                  ))}
+                   <button type="button" onClick={() => addToList<string>(setMajors, "")} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">+ Add another major</button>
+                 </div>
+                 <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Minor(s)</label>
+                  {minors.map((minor, index) => (
+                    <div key={index} className="flex items-center gap-2 mb-2">
+                      <input type="text" placeholder="Minor" value={minor} onChange={e => handleStringListChange(setMinors, index, e.target.value)} className="flex-grow h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
+                      <button type="button" onClick={() => removeFromList(minors, setMinors, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
+                    </div>
+                  ))}
+                   <button type="button" onClick={() => addToList<string>(setMinors, "")} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">+ Add another minor</button>
                  </div>
                  {/* Dynamic list for adding courses */}
                  <div>
@@ -212,7 +243,7 @@ export default function CreateProfilePage() {
                         <input type="text" placeholder="Course Name" value={course.name} onChange={e => handleListChange(courses, setCourses, index, 'name', e.target.value)} className="md:col-span-3 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
                         <input type="text" placeholder="CRN" value={course.crn} onChange={e => handleListChange(courses, setCourses, index, 'crn', e.target.value)} className="md:col-span-1 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
                         <input type="text" placeholder="Professor" value={course.professor} onChange={e => handleListChange(courses, setCourses, index, 'professor', e.target.value)} className="md:col-span-2 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
-                        <button type="button" onClick={() => removeFromList(courses, setCourses, index)} className="md:col-span-1 h-11 w-full rounded-md border border-gray-300 bg-gray-50 text-red-600 hover:bg-red-100 text-sm disabled:opacity-50" disabled={courses.length === 1}>Remove</button>
+                        <button type="button" onClick={() => removeFromList(courses, setCourses, index)} className="md:col-span-1 h-11 w-full rounded-md border border-gray-300 bg-gray-50 text-red-600 hover:bg-red-100 text-sm">Remove</button>
                       </div>
                     ))}
                     <button type="button" onClick={() => addToList(setCourses, { name: "", crn: "", professor: "" })} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">+ Add another course</button>
@@ -228,18 +259,23 @@ export default function CreateProfilePage() {
                     <div key={index} className="grid grid-cols-1 md:grid-cols-5 gap-2 items-center mb-2">
                       <input type="text" placeholder="Company" value={internship.company} onChange={e => handleListChange(internships, setInternships, index, 'company', e.target.value)} className="md:col-span-2 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
                       <input type="text" placeholder="Role" value={internship.role} onChange={e => handleListChange(internships, setInternships, index, 'role', e.target.value)} className="md:col-span-2 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
-                      <button type="button" onClick={() => removeFromList(internships, setInternships, index)} className="md:col-span-1 h-11 w-full rounded-md border border-gray-300 bg-gray-50 text-red-600 hover:bg-red-100 text-sm disabled:opacity-50" disabled={internships.length === 1}>Remove</button>
+                      <button type="button" onClick={() => removeFromList(internships, setInternships, index)} className="md:col-span-1 h-11 w-full rounded-md border border-gray-300 bg-gray-50 text-red-600 hover:bg-red-100 text-sm">Remove</button>
                     </div>
                   ))}
                   <button type="button" onClick={() => addToList(setInternships, { company: "", role: "" })} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">+ Add another internship</button>
                 </div>
-                <TextInput label="LinkedIn Profile URL" value={linkedIn} onChange={(e) => setLinkedIn(e.target.value)} placeholder="https://linkedin.com/in/..."/>
-                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Career Interests</label>
+                 <div className="flex items-end gap-2">
+                   <div className="flex-grow">
+                     <TextInput label="LinkedIn Profile URL" value={linkedIn} onChange={(e) => setLinkedIn(e.target.value)} placeholder="https://linkedin.com/in/..."/>
+                   </div>
+                   <button type="button" onClick={() => setLinkedIn("")} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
+                 </div>
+                  <div>
+                   <label className="block text-sm font-medium text-gray-700 mb-1">Career Interests</label>
                   {careerInterests.map((interest, index) => (
                     <div key={index} className="flex items-center gap-2 mb-2">
                       <input type="text" placeholder="e.g., Product Management" value={interest} onChange={e => handleStringListChange(setCareerInterests, index, e.target.value)} className="flex-grow h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
-                      <button type="button" onClick={() => removeFromList(careerInterests, setCareerInterests, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm disabled:opacity-50" disabled={careerInterests.length === 1}>Remove</button>
+                      <button type="button" onClick={() => removeFromList(careerInterests, setCareerInterests, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
                     </div>
                   ))}
                    <button type="button" onClick={() => addToList<string>(setCareerInterests, "")} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">+ Add another interest</button>
@@ -254,7 +290,7 @@ export default function CreateProfilePage() {
                   {clubs.map((club, index) => (
                     <div key={index} className="flex items-center gap-2 mb-2">
                       <input type="text" placeholder="Club Name" value={club} onChange={e => handleStringListChange(setClubs, index, e.target.value)} className="flex-grow h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
-                      <button type="button" onClick={() => removeFromList(clubs, setClubs, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm disabled:opacity-50" disabled={clubs.length === 1}>Remove</button>
+                      <button type="button" onClick={() => removeFromList(clubs, setClubs, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
                     </div>
                   ))}
                    <button type="button" onClick={() => addToList<string>(setClubs, "")} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">+ Add another club</button>
@@ -265,7 +301,7 @@ export default function CreateProfilePage() {
                   {sports.map((sport, index) => (
                     <div key={index} className="flex items-center gap-2 mb-2">
                       <input type="text" placeholder="Sport Name" value={sport} onChange={e => handleStringListChange(setSports, index, e.target.value)} className="flex-grow h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
-                      <button type="button" onClick={() => removeFromList(sports, setSports, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm disabled:opacity-50" disabled={sports.length === 1}>Remove</button>
+                      <button type="button" onClick={() => removeFromList(sports, setSports, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
                     </div>
                   ))}
                    <button type="button" onClick={() => addToList<string>(setSports, "")} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">+ Add another sport</button>
@@ -276,25 +312,45 @@ export default function CreateProfilePage() {
                   {hobbies.map((hobby, index) => (
                     <div key={index} className="flex items-center gap-2 mb-2">
                       <input type="text" placeholder="Hobby or Interest" value={hobby} onChange={e => handleStringListChange(setHobbies, index, e.target.value)} className="flex-grow h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"/>
-                      <button type="button" onClick={() => removeFromList(hobbies, setHobbies, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm disabled:opacity-50" disabled={hobbies.length === 1}>Remove</button>
+                      <button type="button" onClick={() => removeFromList(hobbies, setHobbies, index)} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
                     </div>
                   ))}
                    <button type="button" onClick={() => addToList<string>(setHobbies, "")} className="mt-2 text-sm font-semibold text-blue-600 hover:text-blue-800">+ Add another hobby</button>
-                </div>
-
-                <div className="mt-2 space-y-3">
-                  <TextInput label="Twitter URL" value={socials.twitter} onChange={(e) => setSocials({...socials, twitter: e.target.value})} placeholder="https://twitter.com/username"/>
-                  <TextInput label="Instagram URL" value={socials.instagram} onChange={(e) => setSocials({...socials, instagram: e.target.value})} placeholder="https://instagram.com/username"/>
-                  <TextInput label="Snapchat Username" value={socials.snapchat} onChange={(e) => setSocials({...socials, snapchat: e.target.value})} placeholder="username"/>
-                  <TextInput label="Facebook URL" value={socials.facebook} onChange={(e) => setSocials({...socials, facebook: e.target.value})} placeholder="https://facebook.com/username"/>
-                </div>
-              </div>
-
-              {/* --- Submit Button --- */}
+                 </div>
+ 
+                 <div className="mt-2 space-y-3">
+                   <div className="flex items-end gap-2">
+                     <div className="flex-grow">
+                       <TextInput label="Twitter URL" value={socials.twitter} onChange={(e) => setSocials({...socials, twitter: e.target.value})} placeholder="https://twitter.com/username"/>
+                     </div>
+                     <button type="button" onClick={() => setSocials({...socials, twitter: ""})} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
+                   </div>
+                   <div className="flex items-end gap-2">
+                     <div className="flex-grow">
+                       <TextInput label="Instagram URL" value={socials.instagram} onChange={(e) => setSocials({...socials, instagram: e.target.value})} placeholder="https://instagram.com/username"/>
+                     </div>
+                     <button type="button" onClick={() => setSocials({...socials, instagram: ""})} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
+                   </div>
+                   <div className="flex items-end gap-2">
+                     <div className="flex-grow">
+                       <TextInput label="Snapchat Username" value={socials.snapchat} onChange={(e) => setSocials({...socials, snapchat: e.target.value})} placeholder="username"/>
+                     </div>
+                     <button type="button" onClick={() => setSocials({...socials, snapchat: ""})} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
+                   </div>
+                   <div className="flex items-end gap-2">
+                     <div className="flex-grow">
+                       <TextInput label="Facebook URL" value={socials.facebook} onChange={(e) => setSocials({...socials, facebook: e.target.value})} placeholder="https://facebook.com/username"/>
+                     </div>
+                     <button type="button" onClick={() => setSocials({...socials, facebook: ""})} className="h-11 rounded-md border border-gray-300 bg-gray-50 px-3 text-red-600 hover:bg-red-100 text-sm">Remove</button>
+                   </div>
+                 </div>
+               </div>
+ 
+               {/* --- Submit Button --- */}
               <div className="pt-4 flex justify-end">
                 <button
                   type="submit"
-                  className="inline-flex items-center justify-center rounded-md border border-transparent bg-[#0C2340] px-6 py-3 text-base font-medium text-white shadow-sm hover:brightness-110"
+                  className="inline-flex items-center justify-center rounded-md border border-transparent bg-[#0C2340] px-6 py-3 text-base font-bold text-white shadow-sm hover:brightness-110"
                 >
                   Save Profile
                 </button>
@@ -303,6 +359,34 @@ export default function CreateProfilePage() {
           </div>
         </div>
       </main>
+    </div>
+  );
+}
+
+// --- HELPER COMPONENT ---
+interface TextInputProps {
+  label: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  placeholder?: string;
+}
+
+function TextInput({ 
+  label, 
+  value, 
+  onChange, 
+  placeholder 
+}: TextInputProps) {
+  return (
+    <div>
+      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <input
+        type="text"
+        value={value}
+        onChange={onChange}
+        placeholder={placeholder}
+        className="mt-1 h-11 w-full rounded-md border border-gray-300 bg-white px-3 py-2 shadow-sm outline-none ring-0 focus:border-[#0C2340]"
+      />
     </div>
   );
 }
