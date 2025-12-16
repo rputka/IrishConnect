@@ -1,6 +1,8 @@
-from database import db
+from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timezone
 from sqlalchemy.sql import func
+
+db = SQLAlchemy()  # creating database connection
 
 # defining database models
 class Student(db.Model):

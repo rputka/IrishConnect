@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from datetime import datetime, timezone
 import os
 import re
-from database import db
+from models import db
 from sqlalchemy import or_, and_, create_engine, case
 import models
 from alg import rebuild_on_new_user, return_similarities_weighted, load_user_weights, save_user_weights
@@ -17,21 +17,6 @@ db.init_app(app)
 
 # Create a SQLAlchemy Core engine for alg.py
 engine = create_engine(app.config['SQLALCHEMY_DATABASE_URI'], future=True)
-
-# Jinja2 filter to convert Google Drive URLs to thumbnail format
-@app.template_filter('drive_thumbnail')
-def drive_thumbnail(url):
-    """Convert Google Drive open URL to thumbnail URL for direct image display"""
-    if not url:
-        return url
-    # Match Google Drive open URL format: https://drive.google.com/open?id=FILE_ID
-    match = re.search(r'drive\.google\.com/open\?id=([^&\s]+)', url)
-    if match:
-        file_id = match.group(1)
-        return f'https://drive.google.com/thumbnail?id={file_id}&sz=w1000'
-    # If already in thumbnail format or other format, return as-is
-    return url
-
 
 def get_most_recent_semester(stc_entries):
     """
