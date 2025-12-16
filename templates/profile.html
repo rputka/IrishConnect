@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ student.first_name }} {{ student.last_name }} – Profile</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/profile.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/profile.js') }}" defer></script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="profile-header-top">
+    <div class="profile-header-content">
+      <div class="profile-header-branding">
+        <a href="{{ url_for('home') }}" class="profile-header-title" aria-label="Go to Student Search (home)">IrishConnect</a>
+        <img 
+          src="{{ url_for('static', filename='images/shamrock.webp') }}" 
+          alt="Shamrock" 
+          class="profile-header-shamrock"
+        />
+      </div>
+      <div class="profile-header-dropdown-wrapper">
+        <button class="profile-header-icon-btn" onclick="toggleProfileDropdown()" aria-label="Profile menu">
+          <div class="profile-header-icon-circle">
+            {% if student and student.profile_photo_url %}
+              <img src="{{ student.profile_photo_url|drive_thumbnail }}" alt="Profile" class="profile-header-icon-img">
+            {% else %}
+              <span class="profile-header-icon-initials">
+                {{ active_user.first_name[0] if active_user.first_name else '' }}{{ active_user.last_name[0] if active_user.last_name else '' }}
+              </span>
+            {% endif %}
+          </div>
+          <div class="profile-header-dropdown-chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </button>
+        <div class="profile-header-dropdown" id="profile-dropdown">
+          <a href="{{ url_for('view_user', ndid=current_user.NDID if current_user else student.NDID) }}" class="profile-header-dropdown-item">My Profile</a>
+          <a href="{{ url_for('logout') }}" class="profile-header-dropdown-item">Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="profile-container">
+    <!-- Header -->
+    <div class="profile-header">
+      <!-- back button defaults to home but returns to previous page -->
+      <a href="{{ back_url }}" class="profile-back-btn">  
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 12H5"></path>
+          <path d="M12 19l-7-7 7-7"></path>
+        </svg>
+        Back to Student Search
+      </a>
+
+      {% if is_own_profile %}
+        <div class="profile-actions">
+          <a href="{{ url_for('edit_profile', ndid=student.NDID) }}" class="profile-edit-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            Edit Profile
+          </a>
+          <button onclick="showDeleteModal()" class="profile-delete-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="3 6 5 6 21 6"></polyline>
+              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+              <line x1="10" y1="11" x2="10" y2="17"></line>
+              <line x1="14" y1="11" x2="14" y2="17"></line>
+            </svg>
+            Delete Profile
+          </button>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Banner -->
+    <div class="profile-banner">
+      <img 
+        src="{{ url_for('static', filename='images/sunrisenotredame.jpg') }}" 
+        alt="Notre Dame sunrise" 
+        class="profile-banner-bg"
+      />
+      <div class="profile-banner-overlay"></div>
+      <div class="profile-banner-content">
+        <div class="profile-banner-avatar">
+          {% if student.profile_photo_url %}
+            <img src="{{ student.profile_photo_url|drive_thumbnail }}">
+          {% else %}
+            <span class="profile-banner-avatar-initials">
+              {{ student.first_name[0] if student.first_name else '' }}{{ student.last_name[0] if student.last_name else '' }}
+            </span>
+          {% endif %}
+        </div>
+        <h1 class="profile-banner-name">{{ student.first_name }} {{ student.last_name }}</h1>
+        <a href="mailto:{{ student.email }}" class="profile-banner-email">{{ student.email }}</a>
+      </div>
+    </div>
+
+    <!-- Sections -->
+    <div class="profile-sections">
+      <!-- Basic Information -->
+      <div class="profile-section-card">
+        <h2 class="profile-section-title">Basic Information</h2>
+        <ul class="profile-section-content">
+          <li><strong>Name:</strong> {{ student.first_name }} {{ student.last_name }}</li>
+          <li><strong>Class Year:</strong> {{ student.grad_year or '—' }}</li>
+          <li><strong>Residence Hall:</strong> {{ student.dorm or '—' }}</li>
+          <li><strong>Hometown:</strong> {{ student.hometown or '—' }}{% if student.homestate %}, {{ student.homestate }}{% else %} {{ student.home_country or '—' }}{% endif %}</li>
+        </ul>
+      </div>
+
+      <!-- Academics -->
+      <div class="profile-section-card">
+        <h2 class="profile-section-title">Academics</h2>
+        <div class="profile-section-content">
+          {% if student.major %}
+          <div>
+            <strong>Major(s):</strong>
+            <p>{{ student.major }}</p>
+          </div>
+          {% endif %}
+          {% if student.minor %}
+          <div>
+            <strong>Minor(s):</strong>
+            <p>{{ student.minor }}</p>
+          </div>
+          {% endif %}
+          {% if current_courses or past_courses %}
+          <div>
+            <strong>Classes:</strong>
+            <a href="#" onclick="showClassesModal(); return false;" class="profile-view-link">View here</a>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Professional -->
+      <div class="profile-section-card">
+        <h2 class="profile-section-title">Professional</h2>
+        <div class="profile-section-content">
+          {% if internships and internships|length > 0 %}
+          <div>
+            <strong>Past Internships:</strong>
+            <div class="profile-internship-list">
+              {% for intern in internships %}
+                <div class="profile-internship-item">
+                  {% if intern.position %}{{ intern.position }}{% endif %}
+                  {% if intern.company %} at <span>{{ intern.company }}</span>{% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Social -->
+      <div class="profile-section-card">
+        <h2 class="profile-section-title">Social</h2>
+        <div class="profile-section-content">
+          {% if clubs and clubs|length > 0 %}
+          <div>
+            <strong>Clubs/Organizations:</strong>
+            <p>{{ clubs|map(attribute='club_name')|join(', ') }}</p>
+          </div>
+          {% endif %}
+          {% if student.instagram_url or student.snapchat_url or student.linkedin_url %}
+          <div>
+            <strong>Social Media:</strong>
+            <div class="profile-social-links">
+              {% if student.instagram_url %}
+                <a href="https://www.instagram.com/{{ student.instagram_url }}/" target="_blank" rel="noopener noreferrer">Instagram</a>
+              {% endif %}
+              {% if student.snapchat_url %}
+                <span>Snapchat: {{ student.snapchat_url }}</span>
+              {% endif %}
+              {% if student.linkedin_url %}
+                <a href="https://www.linkedin.com/in/{{ student.linkedin_url }}/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Classes Modal -->
+  <div id="classes-modal" class="profile-modal-overlay hidden" onclick="if(event.target === this) hideClassesModal();">
+    <div class="profile-modal">
+      <h3 class="profile-modal-header">Classes taken by {{ student.first_name }} {{ student.last_name }}</h3>
+      <div class="profile-modal-content">
+        {% if current_courses and current_courses|length > 0 %}
+        <div class="profile-modal-course-group">
+          <h4 class="profile-modal-semester">Current Courses</h4>
+          <ul class="profile-modal-course-list">
+            {% for course in current_courses %}
+              <li>{{ course.name or course.CRN }}{% if course.prof_name %} — {{ course.prof_name }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+        
+        {% if past_courses and past_courses|length > 0 %}
+        <div class="profile-modal-course-group">
+          <h4 class="profile-modal-semester">Past Courses</h4>
+          <ul class="profile-modal-course-list">
+            {% for course in past_courses %}
+              <li>{{ course.name or course.CRN }}{% if course.prof_name %} — {{ course.prof_name }}{% endif %}</li>
+            {% endfor %}
+          </ul>
+        </div>
+        {% endif %}
+      </div>
+      <div class="profile-modal-actions">
+        <button onclick="hideClassesModal()" class="profile-modal-btn-cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  {% if is_own_profile %}
+  <div id="delete-modal" class="profile-modal-overlay hidden" onclick="if(event.target === this) hideDeleteModal();">
+    <div class="profile-modal">
+      <h3 class="profile-modal-header">Delete Profile</h3>
+      <div class="profile-modal-content">
+        <p class="profile-modal-text">
+          Are you sure you want to delete your profile? This action cannot be undone.
+        </p>
+      </div>
+      <div class="profile-modal-actions">
+        <button onclick="hideDeleteModal()" class="profile-modal-btn-cancel">Cancel</button>
+        <form method="POST" action="{{ url_for('edit_profile', ndid=student.NDID) }}" style="display: inline;">
+          <button type="submit" name="delete_profile" class="profile-modal-btn-delete">Delete Profile</button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+</body>
+</html>

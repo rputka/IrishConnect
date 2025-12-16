@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IrishConnect - Chat & Groups</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/chat.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script defer src="{{ url_for('static', filename='js/chat.js') }}"></script>
+  <script>window.MY_NDID = "{{ my_ndid }}"; window.CHAT_URL = "{{ url_for('chat') }}";</script>
+</head>
+<body>
+  <!-- Header -->
+  <header class="chat-header">
+    <div class="chat-header-content">
+      <div class="chat-header-branding">
+        <a href="{{ url_for('home') }}" class="chat-header-title" aria-label="Go to Student Search (home)">IrishConnect</a>
+        <img 
+          src="{{ url_for('static', filename='images/shamrock.webp') }}" 
+          alt="Shamrock" 
+          class="chat-header-shamrock"
+        />
+      </div>
+      <div class="chat-profile-dropdown-wrapper">
+        <button class="chat-profile-icon-btn" onclick="toggleProfileDropdown()" aria-label="Profile menu">
+          <div class="chat-profile-icon-circle">
+            {% if current_user and current_user.profile_photo_url %}
+              <img src="{{ current_user.profile_photo_url|drive_thumbnail }}" alt="Profile" class="chat-profile-icon-img">
+            {% else %}
+              <span class="chat-profile-icon-initials">
+                {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+              </span>
+            {% endif %}
+          </div>
+          <div class="chat-profile-dropdown-chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </button>
+        <div class="chat-profile-dropdown" id="profile-dropdown">
+          <a href="{{ url_for('view_user', ndid=my_ndid) }}" class="chat-profile-dropdown-item">My Profile</a>
+          <a href="{{ url_for('logout') }}" class="chat-profile-dropdown-item">Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="chat-container">
+    <!-- Tabs: Student Search / Chat & Groups -->
+    {% set active_tab = request.endpoint %}
+    <div class="home-tabs">
+      <a href="{{ url_for('home') }}" class="home-tab-btn{% if active_tab == 'home' %} active{% endif %}">Student Search</a>
+      <a href="{{ url_for('chat') }}" class="home-tab-btn{% if active_tab == 'chat' %} active{% endif %}">Chat & Groups</a>
+    </div>
+    
+    <div class="chat-interface">
+      <!-- Sidebar -->
+      <aside class="chat-sidebar">
+        <!-- Search Bar -->
+        <div class="chat-sidebar-search">
+          <div class="chat-search-wrapper">
+            <span class="chat-search-icon">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <path d="M21 21l-4.3-4.3"></path>
+              </svg>
+            </span>
+            <input
+              type="text"
+              placeholder="Search groups"
+              class="chat-search-input"
+              onkeyup="filterGroups(this.value)"
+            />
+          </div>
+        </div>
+
+        <!-- Group List -->
+        <div class="chat-group-list" id="group-list">
+          {% if groups %}
+            <div class="chat-group-header">
+              <h3>My Groups</h3>
+            </div>
+            {% for g in groups %}
+            <button class="chat-group-item group-item" data-group-id="{{ g.groupID }}" data-created-by="{{ g.FK_NDID_created_by }}">
+              <div class="chat-group-avatar">
+                {{ g.group_name[0] | upper }}
+              </div>
+              <div class="chat-group-info">
+                <div class="chat-group-name">{{ g.group_name }}</div>
+              </div>
+            </button>
+            {% endfor %}
+          {% else %}
+            <div style="padding: 1rem; color: #6B7280; text-align: center;">No groups yet. Create one below!</div>
+          {% endif %}
+        </div>
+
+        <!-- Create Group -->
+        <div class="chat-sidebar-create">
+          <h4 class="chat-create-title">Create New Group</h4>
+          <form method="post" action="{{ url_for('create_group') }}" class="chat-create-form">
+            <input type="text" name="group_name" placeholder="Group name" class="chat-create-input" required>
+            <button type="submit" class="chat-create-btn">Create</button>
+          </form>
+        </div>
+      </aside>
+
+      <!-- Main Chat Area -->
+      <main class="chat-main">
+        <!-- Empty State -->
+        <div id="chat-empty" class="chat-empty-state">
+          <div class="chat-empty-icon">
+            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+            </svg>
+          </div>
+          <h3 style="margin: 0 0 0.5rem 0; color: #111827; font-size: 1.125rem;">Select a group</h3>
+          <p style="margin: 0;">Choose a group from the sidebar to start chatting.</p>
+        </div>
+
+        <!-- Chat Panel (Hidden by default) -->
+        <div id="chat-panel" style="display:none; flex: 1; flex-direction: column; height: 100%;">
+          <!-- Header -->
+          <div class="chat-main-header">
+            <div class="chat-main-title-wrapper">
+              <h2 class="chat-main-title" id="chat-title">Group</h2>
+              <span class="chat-member-summary" id="chat-member-summary"></span>
+            </div>
+            
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+              <details class="chat-add-member-details">
+                <summary>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                    <circle cx="8.5" cy="7" r="4"/>
+                    <line x1="20" y1="8" x2="20" y2="14"/>
+                    <line x1="23" y1="11" x2="17" y2="11"/>
+                  </svg>
+                  Add Member
+                </summary>
+                <div class="chat-add-member-dropdown">
+                  <form id="add-member-form">
+                    <input type="text" name="ndid" placeholder="NDID (e.g. 902xxxxxx)" class="chat-add-member-input" required maxlength="9">
+                    <button type="submit" class="chat-add-member-btn">Add User</button>
+                  </form>
+                  <div id="add-member-result" style="margin-top:0.5rem; font-size: 0.875rem; color: #4B5563;"></div>
+                </div>
+              </details>
+              <button type="button" id="delete-group-btn" class="chat-delete-btn" style="display:none;">Delete group</button>
+            </div>
+          </div>
+
+          <!-- Messages -->
+          <div id="messages" class="chat-messages"></div>
+
+          <!-- Input -->
+          <div class="chat-input-area">
+            <form id="send-form" class="chat-input-wrapper">
+              <input type="text" id="msg-input" name="text" placeholder="Type a message..." class="chat-message-input" autocomplete="off" required>
+              <button type="submit" class="chat-send-btn" aria-label="Send message">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <line x1="22" y1="2" x2="11" y2="13"/>
+                  <polygon points="22,2 15,22 11,13 2,9 22,2"/>
+                </svg>
+              </button>
+            </form>
+          </div>
+
+          <!-- Hidden inputs for JS state -->
+          <input type="hidden" id="active-group-id" value="">
+          <input type="hidden" id="active-group-created-by" value="">
+          <input type="hidden" id="last-ts" value="">
+          <input type="hidden" id="last-sender" value="">
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    function filterGroups(query) {
+      const items = document.querySelectorAll('.chat-group-item');
+      query = query.toLowerCase();
+      items.forEach(btn => {
+        const text = btn.textContent.toLowerCase();
+        btn.style.display = text.includes(query) ? 'flex' : 'none';
+      });
+    }
+  </script>
+</body>
+</html>

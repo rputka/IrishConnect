@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrishConnect - Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/register.js') }}" defer></script>
+</head>
+<body>
+    <div class="register-container">
+        <header class="register-header">
+            <div class="register-header-content">
+                <span class="register-header-title">IrishConnect</span>
+                <img 
+                    src="{{ url_for('static', filename='images/shamrock.webp') }}" 
+                    alt="Shamrock" 
+                    class="register-header-shamrock"
+                />
+            </div>
+        </header>
+
+        <!-- Background Image -->
+        <div class="register-background">
+            <img
+                src="{{ url_for('static', filename='images/campus_aerial2.jpg') }}"
+                alt="Notre Dame Campus Aerial"
+                class="register-background-image"
+            />
+            <div class="register-background-overlay"></div>
+        </div>
+
+        <main class="register-main">
+            <div class="register-content">
+                <div class="register-card">
+                    <h1 class="register-title">Complete Your Profile</h1>
+                    <p class="register-description">
+                        Your profile is your digital handshake on campus. Filling it out with your classes, internships, and interests helps others with similar paths find you. The more details you share, the stronger your connections will be.
+                    </p>
+
+                    {% if error %}
+                    <div class="register-error">{{ error }}</div>
+                    {% endif %}
+
+                    <form method="POST" action="/register" enctype="multipart/form-data" class="register-form">
+                        <!-- Account Information Section -->
+                        <div class="register-section">
+                            <h2 class="register-section-title">Account Information</h2>
+                            <div class="register-grid">
+                                <div class="register-form-group">
+                                    <label for="ndid" class="register-label">ND ID</label>
+                                    <input 
+                                        type="text" 
+                                        id="ndid" 
+                                        name="NDID" 
+                                        maxlength="9" 
+                                        required 
+                                        class="register-input"
+                                        placeholder="902xxxxxx"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label for="password" class="register-label">Password</label>
+                                    <div class="register-password-wrapper">
+                                        <input 
+                                            type="password" 
+                                            id="password" 
+                                            name="password" 
+                                            maxlength="30" 
+                                            required 
+                                            class="register-input register-password-input"
+                                            placeholder="e.g. password123"
+                                        />
+                                        <button type="button" class="register-password-toggle" onclick="togglePasswordVisibility('password')" aria-label="Toggle password visibility">
+                                            <svg id="password-eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Information Section -->
+                        <div class="register-section">
+                            <h2 class="register-section-title">Notre Dame Introduction</h2>
+                            <div class="register-grid">
+                                <div class="register-form-group">
+                                    <label for="first_name" class="register-label">First Name</label>
+                                    <input 
+                                        type="text" 
+                                        id="first_name" 
+                                        name="first_name" 
+                                        maxlength="30" 
+                                        required 
+                                        class="register-input"
+                                        placeholder="e.g. Tim"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label for="last_name" class="register-label">Last Name</label>
+                                    <input 
+                                        type="text" 
+                                        id="last_name" 
+                                        name="last_name" 
+                                        maxlength="50" 
+                                        required 
+                                        class="register-input"
+                                        placeholder="e.g. Weninger"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label for="email" class="register-label">ND Email</label>
+                                    <input 
+                                        type="email" 
+                                        id="email" 
+                                        name="email" 
+                                        maxlength="120" 
+                                        required 
+                                        class="register-input"
+                                        placeholder="e.g. tweninge@nd.edu"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label for="grad_year" class="register-label">Graduation Year</label>
+                                    <input 
+                                        type="text" 
+                                        id="grad_year" 
+                                        name="grad_year" 
+                                        maxlength="4" 
+                                        pattern="\d{4}" 
+                                        class="register-input"
+                                        placeholder="e.g. 2027"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label for="dorm" class="register-label">Dorm</label>
+                                    <input 
+                                        type="text" 
+                                        id="dorm" 
+                                        name="dorm" 
+                                        maxlength="30" 
+                                        class="register-input"
+                                        placeholder="e.g. Sorin"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label for="hometown" class="register-label">Hometown</label>
+                                    <input 
+                                        type="text" 
+                                        id="hometown" 
+                                        name="hometown" 
+                                        maxlength="30" 
+                                        class="register-input"
+                                        placeholder="e.g. South Bend"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label for="homestate" class="register-label">Home State</label>
+                                    <input 
+                                        type="text" 
+                                        id="homestate" 
+                                        name="homestate" 
+                                        maxlength="50" 
+                                        class="register-input"
+                                        placeholder="e.g. Indiana"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label for="home_country" class="register-label">Home Country</label>
+                                    <input 
+                                        type="text" 
+                                        id="home_country" 
+                                        name="home_country" 
+                                        maxlength="30" 
+                                        class="register-input"
+                                        placeholder="e.g. USA"
+                                    />
+                                </div>
+                                <div class="register-form-group">
+                                    <label class="register-label">Profile Photo</label>
+                                    <div class="register-file-upload-wrapper">
+                                        <label for="file-upload" class="register-file-upload-label">
+                                            Choose File
+                                        </label>
+                                        <input 
+                                            id="file-upload"
+                                            name="profile_photo"
+                                            type="file" 
+                                            class="register-file-input"
+                                            accept="image/*"
+                                        />
+                                        <div id="file-info" class="register-file-info" style="display: none;">
+                                            <span id="file-name" class="register-file-name"></span>
+                                            <button type="button" onclick="removeFile()" class="register-remove-btn">Remove</button>
+                                        </div>
+                                        <span id="file-none" class="register-file-none">No file selected</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academics Section -->
+                        <div class="register-section">
+                            <h2 class="register-section-title">Academics</h2>
+                            <div class="register-form-group">
+                                <label class="register-label">Major(s)</label>
+                                <div id="major-container" class="register-dynamic-list">
+                                    <div class="register-dynamic-item">
+                                        <input 
+                                            type="text" 
+                                            name="major" 
+                                            placeholder="eg. Computer Science" 
+                                            maxlength="60" 
+                                            class="register-input register-dynamic-item-input"
+                                        />
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addMajor()" class="register-add-btn">+ Add another major</button>
+                            </div>
+                            <div class="register-form-group">
+                                <label class="register-label">Minor(s)</label>
+                                <div id="minor-container" class="register-dynamic-list">
+                                    <div class="register-dynamic-item">
+                                        <input 
+                                            type="text" 
+                                            name="minor" 
+                                            placeholder="eg. Engineering Corporate Practice" 
+                                            maxlength="60" 
+                                            class="register-input register-dynamic-item-input"
+                                        />
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addMinor()" class="register-add-btn">+ Add another minor</button>
+                            </div>
+                            <div class="register-form-group">
+                                <label class="register-label">Courses</label>
+                                <div id="course-container" class="register-dynamic-list">
+                                    <div class="register-dynamic-grid register-dynamic-grid-8">
+                                        <input 
+                                            type="text" 
+                                            name="course_name" 
+                                            placeholder="eg. Introduction to Linear Algebra and Differential Equations" 
+                                            maxlength="50" 
+                                            class="register-input register-dynamic-grid-item-4"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            name="course_crn" 
+                                            placeholder="eg. 11826" 
+                                            maxlength="5" 
+                                            class="register-input register-dynamic-grid-item-1"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            name="course_prof" 
+                                            placeholder="eg. Tim Weninger" 
+                                            maxlength="100" 
+                                            class="register-input register-dynamic-grid-item-2"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            name="course_semester" 
+                                            placeholder="eg. FA25" 
+                                            maxlength="4" 
+                                            pattern="[a-zA-Z]{2}\d{2}"
+                                            title="Format: fa25, sp25, fa26, etc. (case insensitive)"
+                                            class="register-input register-dynamic-grid-item-1"
+                                        />
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addCourse()" class="register-add-btn">+ Add another course</button>
+                            </div>
+                        </div>
+
+                        <!-- Professional Experience Section -->
+                        <div class="register-section">
+                            <h2 class="register-section-title">Professional Experience</h2>
+                            <div class="register-form-group">
+                                <label class="register-label">Internships</label>
+                                <div id="internship-container" class="register-dynamic-list">
+                                    <div class="register-dynamic-grid register-dynamic-grid-5">
+                                        <input 
+                                            type="text" 
+                                            name="internship_company" 
+                                            placeholder="eg. Google" 
+                                            maxlength="50" 
+                                            class="register-input register-dynamic-grid-item-3"
+                                        />
+                                        <input 
+                                            type="text" 
+                                            name="internship_role" 
+                                            placeholder="eg. Software Engineer Intern" 
+                                            maxlength="60" 
+                                            class="register-input register-dynamic-grid-item-2"
+                                        />
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addInternship()" class="register-add-btn">+ Add another internship</button>
+                            </div>
+                        </div>
+
+                        <!-- Social & Extracurriculars Section -->
+                        <div class="register-section">
+                            <h2 class="register-section-title">Social</h2>
+                            <div class="register-form-group">
+                                <label class="register-label">Clubs</label>
+                                <div id="club-container" class="register-dynamic-list">
+                                    <div class="register-dynamic-item">
+                                        <input 
+                                            type="text" 
+                                            name="club" 
+                                            placeholder="eg. Student International Business Council" 
+                                            maxlength="50" 
+                                            class="register-input register-dynamic-item-input"
+                                        />
+                                    </div>
+                                </div>
+                                <button type="button" onclick="addClub()" class="register-add-btn">+ Add another club</button>
+                            </div>
+                            <div class="register-form-group">
+                                <label for="instagram" class="register-label">Instagram</label>
+                                <input 
+                                    type="text" 
+                                    id="instagram" 
+                                    name="instagram" 
+                                    maxlength="255" 
+                                    class="register-input"
+                                    placeholder="eg. thefightingirish"
+                                />
+                            </div>
+                            <div class="register-form-group">
+                                <label for="snapchat" class="register-label">Snapchat</label>
+                                <input 
+                                    type="text" 
+                                    id="snapchat" 
+                                    name="snapchat" 
+                                    maxlength="30" 
+                                    class="register-input"
+                                    placeholder="eg. thefightingirish"
+                                />
+                            </div>
+                            <div class="register-form-group">
+                                <label for="linkedin" class="register-label">LinkedIn</label>
+                                <input 
+                                    type="text" 
+                                    id="linkedin" 
+                                    name="linkedin" 
+                                    maxlength="255" 
+                                    class="register-input"
+                                    placeholder="eg. john-doe-123"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="register-submit-container">
+                            <button type="submit" class="register-submit-btn">
+                                Save Profile
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

@@ -1,0 +1,211 @@
+/* ============================================
+   LOGIN PAGE STYLES
+   ============================================ */
+.login-container {
+    min-height: 100vh;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header */
+.login-header {
+    position: relative;
+    z-index: 10;
+    background-color: #0C2340;
+    color: white;
+    padding: 1rem 0;
+}
+
+.login-header-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 1rem;
+}
+
+.login-header-title {
+    font-family: serif;
+    letter-spacing: 0.05em;
+    font-size: 1.5rem;
+}
+
+.login-header-shamrock {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+/* Background Image */
+.login-background {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+}
+
+.login-background-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+.login-background-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+}
+
+/* Form Container */
+.login-form-wrapper {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    z-index: 10;
+}
+
+.login-form-container {
+    position: relative;
+    z-index: 10;
+    width: 100%;
+    max-width: 28rem;
+    padding: 0 1.5rem;
+}
+
+/* Profile Image Logo - positioned above the card */
+.login-logo-container {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 0;
+}
+
+.login-logo-wrapper {
+    position: relative;
+    z-index: 20;
+}
+
+.login-logo-circle {
+    width: 96px;
+    height: 96px;
+    border-radius: 50%;
+    background-color: #0C2340;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 4px solid white;
+    overflow: hidden;
+}
+
+.login-logo-image {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+}
+
+.login-form-card {
+    background-color: white;
+    border-radius: 0.5rem;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    padding: 2rem;
+    margin-top: -48px;
+    padding-top: 3.5rem;
+}
+
+.login-form-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #0C2340;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+}
+
+.login-form-group {
+    display: flex;
+    flex-direction: column;
+}
+
+.login-form-label {
+    display: block;
+    color: #0C2340;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.login-form-input-wrapper {
+    border-bottom: 1px solid rgba(12, 35, 64, 0.3);
+}
+
+.login-form-input {
+    width: 100%;
+    background-color: transparent;
+    color: #0C2340;
+    border: none;
+    outline: none;
+    padding: 0.5rem 0;
+}
+
+.login-form-input::placeholder {
+    color: #9CA3AF;
+}
+
+.login-form-error {
+    color: #F87171;
+    font-size: 0.875rem;
+    text-align: center;
+}
+
+.login-form-button {
+    width: 100%;
+    background-color: #0C2340;
+    color: white;
+    font-weight: 600;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.login-form-button:hover {
+    background-color: rgba(12, 35, 64, 0.9);
+}
+
+.login-form-footer {
+    margin-top: 1.5rem;
+    text-align: center;
+}
+
+.login-form-footer-text {
+    font-size: 0.875rem;
+    color: #4B5563;
+}
+
+.login-form-footer-link {
+    font-weight: 600;
+    color: #C99700;
+    text-decoration: none;
+}
+
+.login-form-footer-link:hover {
+    text-decoration: underline;
+    color: #B8860B;
+}
+

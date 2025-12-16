@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IrishConnect – Student Directory</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/spinner.css')}}">
+  <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+  <script src="{{ url_for('static', filename='js/spinner.js') }}" defer></script>
+</head>
+<body>
+  <!-- Spinner while algorithm runs -->
+   <div id="algorithm-spinner" class="spinner-overlay" role="status" aria-live="polite" aria-label="Loading" style="display:none;">
+    <div class="spinner"></div>
+   </div>
+  <!-- Header -->
+  <header class="home-header">
+    <div class="home-header-content">
+      <div class="home-header-branding">
+        <span class="home-header-title">IrishConnect</span>
+        <img 
+          src="{{ url_for('static', filename='images/shamrock.webp') }}" 
+          alt="Shamrock" 
+          class="home-header-shamrock"
+        />
+      </div>
+      <div class="home-profile-dropdown-wrapper">
+        <button class="home-profile-icon-btn" onclick="toggleProfileDropdown()" aria-label="Profile menu">
+          <div class="home-profile-icon-circle">
+            {% if current_user and current_user.profile_photo_url %}
+              <img src="{{ current_user.profile_photo_url|drive_thumbnail }}" alt="Profile" class="home-profile-icon-img">
+            {% else %}
+              <span class="home-profile-icon-initials">
+                {{ current_user.first_name[0] }}{{ current_user.last_name[0] }}
+              </span>
+            {% endif %}
+          </div>
+          <div class="home-profile-dropdown-chevron">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </div>
+        </button>
+        <div class="home-profile-dropdown" id="profile-dropdown">
+          <a href="{{ url_for('view_user', ndid=my_ndid) }}" class="home-profile-dropdown-item">My Profile</a>
+          <a href="{{ url_for('logout') }}" class="home-profile-dropdown-item">Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="home-container">
+    <!-- Tabs: Student Search / Chat & Groups -->
+    {% set active_tab = request.endpoint %}
+    <div class="home-tabs">
+      <a href="{{ url_for('home') }}" class="home-tab-btn{% if active_tab == 'home' or active_tab == 'algorithm' %} active{% endif %}">Student Search</a>
+      <a href="{{ url_for('chat') }}" class="home-tab-btn{% if active_tab == 'chat' %} active{% endif %}">Chat & Groups</a>
+    </div>
+
+    <!-- Search and Filter Bar -->
+    <div class="home-search-filter-bar">
+      <div class="home-search-wrapper">
+        <label class="home-search-label">Search for people</label>
+        <form method="get" action="{{ url_for('home') }}" class="home-search-input-wrapper">
+          <!-- Preserve other filter params -->
+          {% if request.args.get('grad_year') %}<input type="hidden" name="grad_year" value="{{ request.args.get('grad_year') }}">{% endif %}
+          {% if request.args.get('hometown') %}<input type="hidden" name="hometown" value="{{ request.args.get('hometown') }}">{% endif %}
+          {% if request.args.get('homestate') %}<input type="hidden" name="homestate" value="{{ request.args.get('homestate') }}">{% endif %}
+          {% if request.args.get('dorm') %}<input type="hidden" name="dorm" value="{{ request.args.get('dorm') }}">{% endif %}
+          {% if request.args.get('major') %}<input type="hidden" name="major" value="{{ request.args.get('major') }}">{% endif %}
+          {% if request.args.get('minor') %}<input type="hidden" name="minor" value="{{ request.args.get('minor') }}">{% endif %}
+          {% if request.args.get('course') %}<input type="hidden" name="course" value="{{ request.args.get('course') }}">{% endif %}
+          {% if request.args.get('professor') %}<input type="hidden" name="professor" value="{{ request.args.get('professor') }}">{% endif %}
+          {% if request.args.get('club') %}<input type="hidden" name="club" value="{{ request.args.get('club') }}">{% endif %}
+          {% if request.args.get('company') %}<input type="hidden" name="company" value="{{ request.args.get('company') }}">{% endif %}
+          {% if request.args.get('role') %}<input type="hidden" name="role" value="{{ request.args.get('role') }}">{% endif %}
+          {% if request.args.get('per_page') %}<input type="hidden" name="per_page" value="{{ request.args.get('per_page') }}">{% endif %}
+          
+          <input
+            type="text"
+            name="q"
+            value="{{ request.args.get('q','') }}"
+            placeholder="Enter a first or last name"
+            class="home-search-input"
+            id="search-input"
+            onkeypress="if(event.key === 'Enter') this.form.submit();"
+            onclick="event.stopPropagation();"
+          />
+          <span class="home-search-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="11" cy="11" r="8"></circle>
+              <path d="M21 21l-4.3-4.3"></path>
+            </svg>
+          </span>
+          {% if request.args.get('q') %}
+            <button type="button" aria-label="Clear" class="home-search-clear" onclick="return clearSearch(event);">×</button>
+          {% endif %}
+        </form>
+      </div>
+
+      <div class="home-actions-wrapper">
+        <label class="home-actions-label">Actions</label>
+        <div class="home-actions-buttons">
+          <button type="button" onclick="toggleFilters()" class="home-filter-btn" id="filter-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            More filters
+          </button>
+          <a href="{{ url_for('home') }}" id="clear-all-filters" class="home-clear-btn">Clear all filters</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Filters Panel -->
+    {% set has_filters = request.args.get('grad_year') or request.args.get('hometown') or request.args.get('homestate') or request.args.get('dorm') or request.args.get('major') or request.args.get('minor') or request.args.get('course') or request.args.get('professor') or request.args.get('club') or request.args.get('company') or request.args.get('role') %}
+    <div class="home-filters-panel{% if has_filters %} show{% endif %}" id="filters-panel" data-has-filters="{{ '1' if has_filters else '0' }}">
+      <form method="get" action="{{ url_for('home') }}">
+        <!-- Preserve search query and pagination params -->
+        {% if request.args.get('q') %}
+          <input type="hidden" name="q" value="{{ request.args.get('q') }}">
+        {% endif %}
+        
+        <div class="home-filters-grid">
+          <!-- Academic Information -->
+          <div class="home-filter-group">
+            <label class="home-filter-label">Major</label>
+            <input type="text" name="major" value="{{ request.args.get('major','') }}" class="home-filter-input" id="filter-major" placeholder="eg. Computer Science">
+            {% if request.args.get('major') %}
+              <button type="button" aria-label="Clear major" class="home-filter-clear" onclick="clearFilter('major')">×</button>
+            {% endif %}
+          </div>
+          <div class="home-filter-group">
+            <label class="home-filter-label">Minor</label>
+            <input type="text" name="minor" value="{{ request.args.get('minor','') }}" class="home-filter-input" id="filter-minor" placeholder="eg. Engineering Corporate Practice">
+            {% if request.args.get('minor') %}
+              <button type="button" aria-label="Clear minor" class="home-filter-clear" onclick="clearFilter('minor')">×</button>
+            {% endif %}
+          </div>
+          <div class="home-filter-group">
+            <label class="home-filter-label">Grad year</label>
+            <input type="text" name="grad_year" value="{{ request.args.get('grad_year','') }}" class="home-filter-input" id="filter-grad_year" placeholder="eg. 2026">
+            {% if request.args.get('grad_year') %}
+              <button type="button" aria-label="Clear grad year" class="home-filter-clear" onclick="clearFilter('grad_year')">×</button>
+            {% endif %}
+          </div>
+          <div class="home-filter-group">
+            <label class="home-filter-label">Course</label>
+            <input type="text" name="course" value="{{ request.args.get('course','') }}" class="home-filter-input" id="filter-course" placeholder="eg. Data Structures">
+            {% if request.args.get('course') %}
+              <button type="button" aria-label="Clear course" class="home-filter-clear" onclick="clearFilter('course')">×</button>
+            {% endif %}
+          </div>
+          <div class="home-filter-group">
+            <label class="home-filter-label">Professor</label>
+            <input type="text" name="professor" value="{{ request.args.get('professor','') }}" class="home-filter-input" id="filter-professor" placeholder="eg. Tim Weninger">
+            {% if request.args.get('professor') %}
+              <button type="button" aria-label="Clear professor" class="home-filter-clear" onclick="clearFilter('professor')">×</button>
+            {% endif %}
+          </div>
+          <!-- Location Information -->
+          <div class="home-filter-group">
+            <label class="home-filter-label">Hometown</label>
+            <input type="text" name="hometown" value="{{ request.args.get('hometown','') }}" class="home-filter-input" id="filter-hometown" placeholder="eg. Cleveland">
+            {% if request.args.get('hometown') %}
+              <button type="button" aria-label="Clear hometown" class="home-filter-clear" onclick="clearFilter('hometown')">×</button>
+            {% endif %}
+          </div>
+          <div class="home-filter-group">
+            <label class="home-filter-label">Home state</label>
+            <input type="text" name="homestate" value="{{ request.args.get('homestate','') }}" class="home-filter-input" id="filter-homestate" placeholder="eg. Ohio">
+            {% if request.args.get('homestate') %}
+              <button type="button" aria-label="Clear home state" class="home-filter-clear" onclick="clearFilter('homestate')">×</button>
+            {% endif %}
+          </div>
+          <div class="home-filter-group">
+            <label class="home-filter-label">Dorm</label>
+            <input type="text" name="dorm" value="{{ request.args.get('dorm','') }}" class="home-filter-input" id="filter-dorm" placeholder="eg. Sorin">
+            {% if request.args.get('dorm') %}
+              <button type="button" aria-label="Clear dorm" class="home-filter-clear" onclick="clearFilter('dorm')">×</button>
+            {% endif %}
+          </div>
+          <!-- Activities & Professional Experience -->
+          <div class="home-filter-group">
+            <label class="home-filter-label">Club</label>
+            <input type="text" name="club" value="{{ request.args.get('club','') }}" class="home-filter-input" id="filter-club" placeholder="eg. Investment Club">
+            {% if request.args.get('club') %}
+              <button type="button" aria-label="Clear club" class="home-filter-clear" onclick="clearFilter('club')">×</button>
+            {% endif %}
+          </div>
+          <div class="home-filter-group">
+            <label class="home-filter-label">Internship Company</label>
+            <input type="text" name="company" value="{{ request.args.get('company','') }}" class="home-filter-input" id="filter-company" placeholder="eg. Google">
+            {% if request.args.get('company') %}
+              <button type="button" aria-label="Clear company" class="home-filter-clear" onclick="clearFilter('company')">×</button>
+            {% endif %}
+          </div>
+          <div class="home-filter-group">
+            <label class="home-filter-label">Internship Role</label>
+            <input type="text" name="role" value="{{ request.args.get('role','') }}" class="home-filter-input" id="filter-role" placeholder="eg. Software Engineer Intern">
+            {% if request.args.get('role') %}
+              <button type="button" aria-label="Clear role" class="home-filter-clear" onclick="clearFilter('role')">×</button>
+            {% endif %}
+          </div>
+        </div>
+        <div style="margin-top: 1rem;">
+          <button type="submit" class="home-filter-btn">Apply Filters</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Results Header -->
+    <div class="home-results-header">
+      {% if request.endpoint == 'algorithm' %}
+        <div class="home-results-count">Most similar students:</div>
+      {% else %}
+        <div class="home-results-count">Users ({{ pagination.total if pagination else 0 }})</div>
+      {% endif %}
+      <a href="{{ url_for('algorithm') }}" class="home-algorithm-btn">Run Similarity Algorithm</a>
+    </div>
+
+    <!-- Similarity Controls -->
+    {% if request.endpoint == 'algorithm' %}
+      <div class="home-similarity-controls">
+        <div class="home-similarity-title">
+          Customize recommendations
+        </div>
+
+        <div class="home-similarity-sliders">
+          <div class="similarity-slider">
+            <label>Academics (Major, Minor, and Courses)</label>
+            <input type="range" min="0" max="2" step="0.1" data-key="academics">
+          </div>
+
+          <div class="similarity-slider">
+            <label>Professional (Clubs and Internships)</label>
+            <input type="range" min="0" max="2" step="0.1" data-key="professional">
+          </div>
+
+          <div class="similarity-slider">
+            <label>Background (Hometown and Dorm)</label>
+            <input type="range" min="0" max="2" step="0.1" data-key="background">
+          </div>
+
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Student Cards Grid -->
+    <div class="home-cards-grid">
+      {% for s in dbrows %}
+        <a href="{{ url_for('view_user', ndid=s.NDID, next=request.full_path) }}" class="home-student-card">
+          <div class="home-card-content">
+            <div class="home-card-header">
+              <div class="home-card-profile-section">
+                <div class="home-card-avatar">
+                  {% if s.profile_photo_url %}
+                    <img src="{{ s.profile_photo_url|drive_thumbnail }}" alt="Profile photo of {{ s.first_name }} {{ s.last_name }}">
+                  {% else %}
+                    {{ s.first_name[0] if s.first_name else '' }}{{ s.last_name[0] if s.last_name else '' }}
+                  {% endif %}
+                </div>
+                <div>
+                  <h3 class="home-card-name">{{ s.first_name }} {{ s.last_name }}</h3>
+                  <div class="home-card-hometown">{{ s.hometown or '—' }}{% if s.homestate %}, {{ s.homestate }}{% endif %}</div>
+                </div>
+              </div>
+              <div class="home-card-leprechaun">
+                <img src="{{ url_for('static', filename='images/Notre_Dame_Leprechaun_logo.svg') }}" alt="Notre Dame Leprechaun">
+              </div>
+            </div>
+
+            <div class="home-card-details">
+              <div class="home-card-detail-row">
+                <span class="home-card-detail-label">Major:</span>
+                <span class="home-card-detail-value">{{ s.major or '—' }}</span>
+              </div>
+              <div class="home-card-detail-row">
+                <span class="home-card-detail-label">Minor:</span>
+                <span class="home-card-detail-value">{{ s.minor or '—' }}</span>
+              </div>
+              <div class="home-card-detail-row">
+                <span class="home-card-detail-label">Class year:</span>
+                <span class="home-card-detail-value">{{ s.grad_year or '—' }}</span>
+              </div>
+              <div class="home-card-detail-row">
+                <span class="home-card-detail-label">Residence hall:</span>
+                <span class="home-card-detail-value">{{ s.dorm or '—' }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="home-card-button-wrapper">
+            <span class="home-card-button">Go to profile</span>
+          </div>
+        </a>
+      {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if pagination %}
+      {% set args_dict = request.args.to_dict() %}
+      {% set current_endpoint = request.endpoint %}
+      <div class="home-pagination-wrapper">
+        <div class="home-pagination-spacer"></div>
+
+        <div class="home-pagination-controls">
+          {% if pagination.has_prev %}
+            {% set prev_args = args_dict.copy() %}
+            {% set _ = prev_args.update({'page': pagination.prev_num}) %}
+            <a href="{{ url_for(current_endpoint, **prev_args) }}" class="home-pagination-btn" aria-label="Previous Page">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </a>
+          {% else %}
+            <span class="home-pagination-btn" style="opacity: 0.5; cursor: not-allowed;" aria-label="Previous Page">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 18l-6-6 6-6"/>
+              </svg>
+            </span>
+          {% endif %}
+
+          <div class="home-pagination-numbers">
+            {% for page_num in range(1, pagination.pages + 1) %}
+              {% if page_num == pagination.page %}
+                <span class="home-pagination-number active">{{ page_num }}</span>
+              {% else %}
+                {% set page_args = args_dict.copy() %}
+                {% set _ = page_args.update({'page': page_num}) %}
+                <a href="{{ url_for(current_endpoint, **page_args) }}" class="home-pagination-number">{{ page_num }}</a>
+              {% endif %}
+            {% endfor %}
+          </div>
+
+          {% if pagination.has_next %}
+            {% set next_args = args_dict.copy() %}
+            {% set _ = next_args.update({'page': pagination.next_num}) %}
+            <a href="{{ url_for(current_endpoint, **next_args) }}" class="home-pagination-btn" aria-label="Next Page">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </a>
+          {% else %}
+            <span class="home-pagination-btn" style="opacity: 0.5; cursor: not-allowed;" aria-label="Next Page">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M9 18l6-6-6-6"/>
+              </svg>
+            </span>
+          {% endif %}
+        </div>
+
+        <div class="home-per-page-wrapper">
+          <label class="home-per-page-label">Show</label>
+          <select class="home-per-page-select" onchange="updatePerPage(this.value)">
+            {% set current_per_page = request.args.get('per_page', '12')|string %}
+            <option value="12" {% if current_per_page == '12' %}selected{% endif %}>12</option>
+            <option value="24" {% if current_per_page == '24' %}selected{% endif %}>24</option>
+            <option value="48" {% if current_per_page == '48' %}selected{% endif %}>48</option>
+            <option value="96" {% if current_per_page == '96' %}selected{% endif %}>96</option>
+          </select>
+          <label class="home-per-page-label">per page</label>
+        </div>
+      </div>
+    {% endif %}
+  </div>
+</body>
+</html>

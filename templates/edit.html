@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrishConnect - Edit Profile</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/edit.css') }}">
+    <script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+    <script src="{{ url_for('static', filename='js/edit.js') }}" defer></script>
+    
+</head>
+<body>
+    <div class="edit-container">
+        <header class="edit-header">
+            <div class="edit-header-content">
+                <div class="edit-header-branding">
+                    <span class="edit-header-title">IrishConnect</span>
+                    <img 
+                        src="{{ url_for('static', filename='images/shamrock.webp') }}" 
+                        alt="Shamrock" 
+                        class="edit-header-shamrock"
+                    />
+                </div>
+                <div class="edit-profile-dropdown-wrapper">
+                    <button class="edit-profile-icon-btn" onclick="toggleProfileDropdown()" aria-label="Profile menu">
+                        <div class="edit-profile-icon-circle">
+                            {% if student and student.profile_photo_url %}
+                                <img src="{{ student.profile_photo_url|drive_thumbnail }}" alt="Profile" class="edit-profile-icon-img">
+                            {% else %}
+                                <span class="edit-profile-icon-initials">
+                                    {{ student.first_name[0] if student.first_name else '' }}{{ student.last_name[0] if student.last_name else '' }}
+                                </span>
+                            {% endif %}
+                        </div>
+                        <div class="edit-profile-dropdown-chevron">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </div>
+                    </button>
+                    <div class="edit-profile-dropdown" id="profile-dropdown">
+                        <a href="{{ url_for('view_user', ndid=student.NDID) }}" class="edit-profile-dropdown-item">My Profile</a>
+                        <a href="{{ url_for('logout') }}" class="edit-profile-dropdown-item">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Background Image -->
+        <div class="edit-background">
+            <img
+                src="{{ url_for('static', filename='images/campus_aerial2.jpg') }}"
+                alt="Notre Dame Campus Aerial"
+                class="edit-background-image"
+            />
+            <div class="edit-background-overlay"></div>
+        </div>
+
+        <main class="edit-main">
+            <div class="edit-content">
+                <div class="edit-card">
+                    <h1 class="edit-title">Edit Your Profile</h1>
+                    <p class="edit-description">
+                        Update your profile information to keep your connections strong. Make sure your classes, internships, and interests are up to date.
+                    </p>
+
+                    {% if error %}
+                    <div class="edit-error">{{ error }}</div>
+                    {% endif %}
+
+                    <form method="POST" action="/editprofile/{{ student.ndid }}" enctype="multipart/form-data" class="edit-form">
+                        <!-- Account Information Section -->
+                        <div class="edit-section">
+                            <h2 class="edit-section-title">Account Information</h2>
+                            <div class="edit-grid">
+                                <div class="edit-form-group">
+                                    <label for="ndid" class="edit-label">ND ID</label>
+                                    <input 
+                                        type="text" 
+                                        id="ndid" 
+                                        name="ndid" 
+                                        value="{{ student.ndid }}" 
+                                        maxlength="9" 
+                                        required 
+                                        readonly
+                                        class="edit-input"
+                                        style="background-color: #F3F4F6; cursor: not-allowed;"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label for="password" class="edit-label">Password</label>
+                                    <div class="edit-password-wrapper">
+                                        <input 
+                                            type="password" 
+                                            id="password" 
+                                            name="password" 
+                                            value="{{ student.password or '' }}" 
+                                            maxlength="30" 
+                                            class="edit-input edit-password-input"
+                                            placeholder="Leave blank to keep current password"
+                                        />
+                                        <button type="button" class="edit-password-toggle" onclick="togglePasswordVisibility('password')" aria-label="Toggle password visibility">
+                                            <svg id="password-eye-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Basic Information Section -->
+                        <div class="edit-section">
+                            <h2 class="edit-section-title">Notre Dame Introduction</h2>
+                            <div class="edit-grid">
+                                <div class="edit-form-group">
+                                    <label for="first_name" class="edit-label">First Name</label>
+                                    <input 
+                                        type="text" 
+                                        id="first_name" 
+                                        name="first_name" 
+                                        value="{{ student.first_name or '' }}" 
+                                        maxlength="30" 
+                                        required 
+                                        class="edit-input"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label for="last_name" class="edit-label">Last Name</label>
+                                    <input 
+                                        type="text" 
+                                        id="last_name" 
+                                        name="last_name" 
+                                        value="{{ student.last_name or '' }}" 
+                                        maxlength="50" 
+                                        required 
+                                        class="edit-input"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label for="email" class="edit-label">ND Email</label>
+                                    <input 
+                                        type="email" 
+                                        id="email" 
+                                        name="email" 
+                                        value="{{ student.email or '' }}" 
+                                        maxlength="120" 
+                                        required 
+                                        class="edit-input"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label for="grad_year" class="edit-label">Graduation Year</label>
+                                    <input 
+                                        type="text" 
+                                        id="grad_year" 
+                                        name="grad_year" 
+                                        value="{{ student.grad_year or '' }}" 
+                                        maxlength="4" 
+                                        pattern="\d{4}" 
+                                        class="edit-input"
+                                        placeholder="e.g. 2027"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label for="dorm" class="edit-label">Dorm</label>
+                                    <input 
+                                        type="text" 
+                                        id="dorm" 
+                                        name="dorm" 
+                                        value="{{ student.dorm or '' }}" 
+                                        maxlength="30" 
+                                        class="edit-input"
+                                        placeholder="e.g. Sorin"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label for="hometown" class="edit-label">Hometown</label>
+                                    <input 
+                                        type="text" 
+                                        id="hometown" 
+                                        name="hometown" 
+                                        value="{{ student.hometown or '' }}" 
+                                        maxlength="30" 
+                                        class="edit-input"
+                                        placeholder="e.g. South Bend"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label for="homestate" class="edit-label">Home State</label>
+                                    <input 
+                                        type="text" 
+                                        id="homestate" 
+                                        name="homestate" 
+                                        value="{{ student.homestate or '' }}" 
+                                        maxlength="50" 
+                                        class="edit-input"
+                                        placeholder="e.g. Indiana"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label for="home_country" class="edit-label">Home Country</label>
+                                    <input 
+                                        type="text" 
+                                        id="home_country" 
+                                        name="home_country" 
+                                        value="{{ student.home_country or '' }}" 
+                                        maxlength="30" 
+                                        class="edit-input"
+                                        placeholder="e.g. USA"
+                                    />
+                                </div>
+                                <div class="edit-form-group">
+                                    <label class="edit-label">Profile Photo URL</label>
+                                    <input 
+                                        type="url" 
+                                        id="profile_photo_url" 
+                                        name="profile_photo_url" 
+                                        value="{{ student.profile_photo_url or '' }}" 
+                                        maxlength="255" 
+                                        class="edit-input"
+                                        placeholder="e.g. Google Drive URL"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academics Section -->
+                        <div class="edit-section">
+                            <h2 class="edit-section-title">Academics</h2>
+                            <div class="edit-form-group">
+                                <label class="edit-label">Major(s)</label>
+                                <div id="major-container" class="edit-dynamic-list">
+                                    {% if student.major %}
+                                        {% set majors_list = student.major.split(',') %}
+                                        {% for major in majors_list %}
+                                        <div class="edit-dynamic-item">
+                                            <input 
+                                                type="text" 
+                                                name="major" 
+                                                value="{{ major.strip() }}" 
+                                                placeholder="eg. Computer Science" 
+                                                maxlength="60" 
+                                                class="edit-input edit-dynamic-item-input"
+                                            />
+                                            {% if not loop.last or majors_list|length > 1 %}
+                                            <button type="button" onclick="this.parentElement.remove();" class="edit-remove-btn">Remove</button>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="edit-dynamic-item">
+                                            <input 
+                                                type="text" 
+                                                name="major" 
+                                                placeholder="eg. Computer Science" 
+                                                maxlength="60" 
+                                                class="edit-input edit-dynamic-item-input"
+                                            />
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="button" onclick="addMajor()" class="edit-add-btn">+ Add another major</button>
+                            </div>
+                            <div class="edit-form-group">
+                                <label class="edit-label">Minor(s)</label>
+                                <div id="minor-container" class="edit-dynamic-list">
+                                    {% if student.minor %}
+                                        {% set minors_list = student.minor.split(',') %}
+                                        {% for minor in minors_list %}
+                                        <div class="edit-dynamic-item">
+                                            <input 
+                                                type="text" 
+                                                name="minor" 
+                                                value="{{ minor.strip() }}" 
+                                                placeholder="eg. Engineering Corporate Practice" 
+                                                maxlength="60" 
+                                                class="edit-input edit-dynamic-item-input"
+                                            />
+                                            {% if not loop.last or minors_list|length > 1 %}
+                                            <button type="button" onclick="this.parentElement.remove();" class="edit-remove-btn">Remove</button>
+                                            {% endif %}
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="edit-dynamic-item">
+                                            <input 
+                                                type="text" 
+                                                name="minor" 
+                                                placeholder="eg. Engineering Corporate Practice" 
+                                                maxlength="60" 
+                                                class="edit-input edit-dynamic-item-input"
+                                            />
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="button" onclick="addMinor()" class="edit-add-btn">+ Add another minor</button>
+                            </div>
+                            <div class="edit-form-group">
+                                <div class="edit-label-with-link">
+                                    <label class="edit-label">Courses</label>
+                                    <a href="#" onclick="event.preventDefault(); startNewSemester(); return false;" class="edit-new-semester-link">+ New Semester</a>
+                                </div>
+                                <input 
+                                    type="text" 
+                                    name="course_semester" 
+                                    id="course_semester"
+                                    value="{% if current_courses and current_courses[0][0].semester_year %}{{ current_courses[0][0].semester_year }}{% endif %}" 
+                                    placeholder="eg. FA25" 
+                                    maxlength="4" 
+                                    pattern="[a-zA-Z]{2}\d{2}"
+                                    class="edit-input edit-semester-field"
+                                />
+                                <div id="course-container" class="edit-dynamic-list">
+                                    {% if current_courses %}
+                                        {% for stc, course in current_courses %}
+                                        <div class="edit-dynamic-grid edit-dynamic-grid-7">
+                                            <input 
+                                                type="text" 
+                                                name="course_name" 
+                                                value="{{ course.name or '' }}" 
+                                                placeholder="eg. Introduction to Linear Algebra and Differential Equations" 
+                                                maxlength="50" 
+                                                class="edit-input edit-dynamic-grid-item-3"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                name="course_crn" 
+                                                value="{{ course.CRN }}" 
+                                                placeholder="eg. 11826" 
+                                                maxlength="5" 
+                                                class="edit-input edit-dynamic-grid-item-1"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                name="course_prof" 
+                                                value="{{ course.prof_name or '' }}" 
+                                                placeholder="eg. Tim Weninger" 
+                                                maxlength="100" 
+                                                class="edit-input edit-dynamic-grid-item-2"
+                                            />
+                                            <button type="button" onclick="this.parentElement.remove();" class="edit-remove-btn edit-dynamic-grid-item-1">Remove</button>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="edit-dynamic-grid edit-dynamic-grid-7">
+                                            <input 
+                                                type="text" 
+                                                name="course_name" 
+                                                placeholder="eg. Introduction to Linear Algebra and Differential Equations" 
+                                                maxlength="50" 
+                                                class="edit-input edit-dynamic-grid-item-3"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                name="course_crn" 
+                                                placeholder="eg. 11826" 
+                                                maxlength="5" 
+                                                class="edit-input edit-dynamic-grid-item-1"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                name="course_prof" 
+                                                placeholder="eg. Tim Weninger" 
+                                                maxlength="100" 
+                                                class="edit-input edit-dynamic-grid-item-2"
+                                            />
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="button" onclick="addCourse()" class="edit-add-btn">+ Add another course</button>
+                            </div>
+                        </div>
+
+                        <!-- Professional Experience Section -->
+                        <div class="edit-section">
+                            <h2 class="edit-section-title">Professional Experience</h2>
+                            <div class="edit-form-group">
+                                <label class="edit-label">Internships</label>
+                                <div id="internship-container" class="edit-dynamic-list">
+                                    {% if internships %}
+                                        {% for intern in internships %}
+                                        <div class="edit-dynamic-grid edit-dynamic-grid-5">
+                                            <input 
+                                                type="text" 
+                                                name="internship_company" 
+                                                value="{{ intern.company or '' }}" 
+                                                placeholder="eg. Google" 
+                                                maxlength="50" 
+                                                class="edit-input edit-dynamic-grid-item-2"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                name="internship_role" 
+                                                value="{{ intern.position or '' }}" 
+                                                placeholder="eg. Software Engineer Intern" 
+                                                maxlength="60" 
+                                                class="edit-input edit-dynamic-grid-item-2"
+                                            />
+                                            <button type="button" onclick="this.parentElement.remove();" class="edit-remove-btn edit-dynamic-grid-item-1">Remove</button>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="edit-dynamic-grid edit-dynamic-grid-5">
+                                            <input 
+                                                type="text" 
+                                                name="internship_company" 
+                                                placeholder="eg. Google" 
+                                                maxlength="50" 
+                                                class="edit-input edit-dynamic-grid-item-3"
+                                            />
+                                            <input 
+                                                type="text" 
+                                                name="internship_role" 
+                                                placeholder="eg. Software Engineer Intern" 
+                                                maxlength="60" 
+                                                class="edit-input edit-dynamic-grid-item-2"
+                                            />
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="button" onclick="addInternship()" class="edit-add-btn">+ Add another internship</button>
+                            </div>
+                        </div>
+
+                        <!-- Social & Extracurriculars Section -->
+                        <div class="edit-section">
+                            <h2 class="edit-section-title">Social</h2>
+                            <div class="edit-form-group">
+                                <label class="edit-label">Clubs</label>
+                                <div id="club-container" class="edit-dynamic-list">
+                                    {% if clubs %}
+                                        {% for club in clubs %}
+                                        <div class="edit-dynamic-item">
+                                            <input 
+                                                type="text" 
+                                                name="club" 
+                                                value="{{ club.club_name }}" 
+                                                placeholder="eg. Student International Business Council" 
+                                                maxlength="50" 
+                                                class="edit-input edit-dynamic-item-input"
+                                            />
+                                            <button type="button" onclick="this.parentElement.remove();" class="edit-remove-btn">Remove</button>
+                                        </div>
+                                        {% endfor %}
+                                    {% else %}
+                                        <div class="edit-dynamic-item">
+                                            <input 
+                                                type="text" 
+                                                name="club" 
+                                                placeholder="eg. Student International Business Council" 
+                                                maxlength="50" 
+                                                class="edit-input edit-dynamic-item-input"
+                                            />
+                                        </div>
+                                    {% endif %}
+                                </div>
+                                <button type="button" onclick="addClub()" class="edit-add-btn">+ Add another club</button>
+                            </div>
+                            <div class="edit-form-group">
+                                <label for="instagram" class="edit-label">Instagram</label>
+                                <input 
+                                    type="text" 
+                                    id="instagram" 
+                                    name="instagram" 
+                                    value="{% for sm in social_media %}{% if sm.platform_name == 'Instagram' %}{{ sm.user_handle }}{% endif %}{% endfor %}" 
+                                    maxlength="255" 
+                                    class="edit-input"
+                                    placeholder="eg. thefightingirish"
+                                />
+                            </div>
+                            <div class="edit-form-group">
+                                <label for="snapchat" class="edit-label">Snapchat</label>
+                                <input 
+                                    type="text" 
+                                    id="snapchat" 
+                                    name="snapchat" 
+                                    value="{% for sm in social_media %}{% if sm.platform_name == 'Snapchat' %}{{ sm.user_handle }}{% endif %}{% endfor %}" 
+                                    maxlength="30" 
+                                    class="edit-input"
+                                    placeholder="eg. thefightingirish"
+                                />
+                            </div>
+                            <div class="edit-form-group">
+                                <label for="linkedin" class="edit-label">LinkedIn</label>
+                                <input 
+                                    type="text" 
+                                    id="linkedin" 
+                                    name="linkedin" 
+                                    value="{% for sm in social_media %}{% if sm.platform_name == 'LinkedIn' %}{{ sm.user_handle }}{% endif %}{% endfor %}" 
+                                    maxlength="255" 
+                                    class="edit-input"
+                                    placeholder="eg. john-doe-123"
+                                />
+                            </div>
+                        </div>
+
+                        <!-- Submit Button -->
+                        <div class="edit-submit-container">
+                            <a href="{{ url_for('view_user', ndid=student.NDID) }}" class="edit-cancel-btn">Cancel</a>
+                            <button type="submit" name="save_profile" class="edit-submit-btn">
+                                Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>
+
+

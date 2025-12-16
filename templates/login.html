@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IrishConnect - Login</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
+</head>
+<body>
+    <div class="login-container">
+        <!-- Header -->
+        <header class="login-header">
+            <div class="login-header-content">
+                <span class="login-header-title">IrishConnect</span>
+                <img 
+                    src="{{ url_for('static', filename='images/shamrock.webp') }}" 
+                    alt="Shamrock" 
+                    class="login-header-shamrock"
+                />
+            </div>
+        </header>
+
+        <!-- Background Image -->
+        <div class="login-background">
+            <img
+                src="{{ url_for('static', filename='images/campus_aerial2.jpg') }}"
+                alt="Notre Dame Campus Aerial"
+                class="login-background-image"
+            />
+            <div class="login-background-overlay"></div>
+        </div>
+
+        <!-- Login Form Container -->
+        <div class="login-form-wrapper">
+            <div class="login-form-container">
+                <!-- Profile Image - positioned to be half in, half out -->
+                <div class="login-logo-container">
+                    <div class="login-logo-wrapper">
+                        <div class="login-logo-circle">
+                            <img 
+                                src="{{ url_for('static', filename='images/Notre_Dame_Fighting_Irish_logo.png') }}" 
+                                alt="Notre Dame Fighting Irish" 
+                                class="login-logo-image"
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div class="login-form-card">
+                    <form method="POST" action="/login" class="login-form">
+                        <div class="login-form-group">
+                            <label for="email" class="login-form-label">ND ID</label>
+                            <div class="login-form-input-wrapper">
+                                <input
+                                    type="text"
+                                    id="email"
+                                    name="email"
+                                    class="login-form-input"
+                                    placeholder="e.g. 902xxxxxx"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        <div class="login-form-group">
+                            <label for="password" class="login-form-label">Password</label>
+                            <div class="login-form-input-wrapper">
+                                <input
+                                    type="password"
+                                    id="password"
+                                    name="password"
+                                    class="login-form-input"
+                                    placeholder="Enter your password"
+                                    required
+                                />
+                            </div>
+                        </div>
+
+                        {% if error %}
+                        <div class="login-form-error">{{ error }}</div>
+                        {% endif %}
+
+                        <button type="submit" class="login-form-button">
+                            Log in
+                        </button>
+                    </form>
+
+                    <div class="login-form-footer">
+                        <p class="login-form-footer-text">
+                            Don't have an account? 
+                            <a href="/register" class="login-form-footer-link">
+                                Register here
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+
