@@ -514,6 +514,11 @@
     accent-color: #0C2340;
 }
 
+.similarity-rerun-wrapper {
+    display: flex;
+    align-items: flex-end;
+}
+
 /* Student Cards Grid */
 .home-cards-grid {
     display: grid;

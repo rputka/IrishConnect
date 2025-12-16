@@ -39,7 +39,9 @@
           </div>
         </button>
         <div class="profile-header-dropdown" id="profile-dropdown">
-          <a href="{{ url_for('view_user', ndid=current_user.NDID if current_user else student.NDID) }}" class="profile-header-dropdown-item">My Profile</a>
+          {% if not is_own_profile and current_user %}
+            <a href="{{ url_for('view_user', ndid=current_user.NDID) }}" class="profile-header-dropdown-item">My Profile</a>
+          {% endif %}
           <a href="{{ url_for('logout') }}" class="profile-header-dropdown-item">Logout</a>
         </div>
       </div>

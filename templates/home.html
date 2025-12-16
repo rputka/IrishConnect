@@ -128,81 +128,48 @@
           <div class="home-filter-group">
             <label class="home-filter-label">Major</label>
             <input type="text" name="major" value="{{ request.args.get('major','') }}" class="home-filter-input" id="filter-major" placeholder="eg. Computer Science">
-            {% if request.args.get('major') %}
-              <button type="button" aria-label="Clear major" class="home-filter-clear" onclick="clearFilter('major')">×</button>
-            {% endif %}
           </div>
           <div class="home-filter-group">
             <label class="home-filter-label">Minor</label>
             <input type="text" name="minor" value="{{ request.args.get('minor','') }}" class="home-filter-input" id="filter-minor" placeholder="eg. Engineering Corporate Practice">
-            {% if request.args.get('minor') %}
-              <button type="button" aria-label="Clear minor" class="home-filter-clear" onclick="clearFilter('minor')">×</button>
-            {% endif %}
           </div>
           <div class="home-filter-group">
             <label class="home-filter-label">Grad year</label>
             <input type="text" name="grad_year" value="{{ request.args.get('grad_year','') }}" class="home-filter-input" id="filter-grad_year" placeholder="eg. 2026">
-            {% if request.args.get('grad_year') %}
-              <button type="button" aria-label="Clear grad year" class="home-filter-clear" onclick="clearFilter('grad_year')">×</button>
-            {% endif %}
           </div>
           <div class="home-filter-group">
             <label class="home-filter-label">Course</label>
             <input type="text" name="course" value="{{ request.args.get('course','') }}" class="home-filter-input" id="filter-course" placeholder="eg. Data Structures">
-            {% if request.args.get('course') %}
-              <button type="button" aria-label="Clear course" class="home-filter-clear" onclick="clearFilter('course')">×</button>
-            {% endif %}
           </div>
           <div class="home-filter-group">
             <label class="home-filter-label">Professor</label>
             <input type="text" name="professor" value="{{ request.args.get('professor','') }}" class="home-filter-input" id="filter-professor" placeholder="eg. Tim Weninger">
-            {% if request.args.get('professor') %}
-              <button type="button" aria-label="Clear professor" class="home-filter-clear" onclick="clearFilter('professor')">×</button>
-            {% endif %}
           </div>
           <!-- Location Information -->
           <div class="home-filter-group">
             <label class="home-filter-label">Hometown</label>
             <input type="text" name="hometown" value="{{ request.args.get('hometown','') }}" class="home-filter-input" id="filter-hometown" placeholder="eg. Cleveland">
-            {% if request.args.get('hometown') %}
-              <button type="button" aria-label="Clear hometown" class="home-filter-clear" onclick="clearFilter('hometown')">×</button>
-            {% endif %}
           </div>
           <div class="home-filter-group">
             <label class="home-filter-label">Home state</label>
             <input type="text" name="homestate" value="{{ request.args.get('homestate','') }}" class="home-filter-input" id="filter-homestate" placeholder="eg. Ohio">
-            {% if request.args.get('homestate') %}
-              <button type="button" aria-label="Clear home state" class="home-filter-clear" onclick="clearFilter('homestate')">×</button>
-            {% endif %}
           </div>
           <div class="home-filter-group">
             <label class="home-filter-label">Dorm</label>
             <input type="text" name="dorm" value="{{ request.args.get('dorm','') }}" class="home-filter-input" id="filter-dorm" placeholder="eg. Sorin">
-            {% if request.args.get('dorm') %}
-              <button type="button" aria-label="Clear dorm" class="home-filter-clear" onclick="clearFilter('dorm')">×</button>
-            {% endif %}
           </div>
           <!-- Activities & Professional Experience -->
           <div class="home-filter-group">
             <label class="home-filter-label">Club</label>
             <input type="text" name="club" value="{{ request.args.get('club','') }}" class="home-filter-input" id="filter-club" placeholder="eg. Investment Club">
-            {% if request.args.get('club') %}
-              <button type="button" aria-label="Clear club" class="home-filter-clear" onclick="clearFilter('club')">×</button>
-            {% endif %}
           </div>
           <div class="home-filter-group">
             <label class="home-filter-label">Internship Company</label>
             <input type="text" name="company" value="{{ request.args.get('company','') }}" class="home-filter-input" id="filter-company" placeholder="eg. Google">
-            {% if request.args.get('company') %}
-              <button type="button" aria-label="Clear company" class="home-filter-clear" onclick="clearFilter('company')">×</button>
-            {% endif %}
           </div>
           <div class="home-filter-group">
             <label class="home-filter-label">Internship Role</label>
             <input type="text" name="role" value="{{ request.args.get('role','') }}" class="home-filter-input" id="filter-role" placeholder="eg. Software Engineer Intern">
-            {% if request.args.get('role') %}
-              <button type="button" aria-label="Clear role" class="home-filter-clear" onclick="clearFilter('role')">×</button>
-            {% endif %}
           </div>
         </div>
         <div style="margin-top: 1rem;">
@@ -218,14 +185,16 @@
       {% else %}
         <div class="home-results-count">Users ({{ pagination.total if pagination else 0 }})</div>
       {% endif %}
-      <a href="{{ url_for('algorithm') }}" class="home-algorithm-btn">Run Similarity Algorithm</a>
+      {% if request.endpoint != 'algorithm' %}
+      <a href="{{ url_for('algorithm') }}" class="home-algorithm-btn" id="run-algorithm-btn" onclick="this.style.display='none'; return true;">Run Similarity Algorithm</a>
+      {% endif %}
     </div>
 
     <!-- Similarity Controls -->
     {% if request.endpoint == 'algorithm' %}
       <div class="home-similarity-controls">
         <div class="home-similarity-title">
-          Customize recommendations
+          Customize Weighting
         </div>
 
         <div class="home-similarity-sliders">
@@ -244,6 +213,9 @@
             <input type="range" min="0" max="2" step="0.1" data-key="background">
           </div>
 
+          <div class="similarity-rerun-wrapper">
+            <button type="button" onclick="applySimilarityPreferences()" class="home-filter-btn">Rerun Algorithm</button>
+          </div>
         </div>
       </div>
     {% endif %}
@@ -351,6 +323,7 @@
           {% endif %}
         </div>
 
+        {% if request.endpoint != 'algorithm' %}
         <div class="home-per-page-wrapper">
           <label class="home-per-page-label">Show</label>
           <select class="home-per-page-select" onchange="updatePerPage(this.value)">
@@ -362,6 +335,9 @@
           </select>
           <label class="home-per-page-label">per page</label>
         </div>
+        {% else %}
+        <div class="home-pagination-spacer"></div>
+        {% endif %}
       </div>
     {% endif %}
   </div>

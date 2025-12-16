@@ -286,12 +286,7 @@ async function applySimilarityPreferences() {
     
     // Re-run algorithm AFTER saving by reloading the algorithm page
     // This ensures the algorithm uses the newly saved weights
-    if (window.location.pathname !== "/algorithm") {
-      window.location.href = "/algorithm";
-    } else {
-      // Force a full reload to ensure new weights are used
-      window.location.href = "/algorithm";
-    }
+    window.location.href = "/algorithm?page=1";
   } catch (e) {
     console.error("Error saving similarity preferences:", e);
     // Hide spinner on error
@@ -300,16 +295,8 @@ async function applySimilarityPreferences() {
   }
 }
 
-// Bind to actual range inputs inside the similarity controls, not the wrapper divs
-document.addEventListener("DOMContentLoaded", function () {
-  document
-    .querySelectorAll(
-      ".home-similarity-sliders input[type='range'][data-key]"
-    )
-    .forEach((input) => {
-      input.addEventListener("change", applySimilarityPreferences);
-    });
-});
+// Sliders no longer trigger algorithm automatically - only the button does
+// Removed automatic slider change listener
 
 // Initialize slider positions from saved preferences on page load
 document.addEventListener("DOMContentLoaded", async function () {

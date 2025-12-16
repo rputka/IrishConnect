@@ -7,6 +7,12 @@ from sqlalchemy import or_, and_, create_engine, case
 import models
 from alg import rebuild_on_new_user, return_similarities_weighted, load_user_weights, save_user_weights
 from urllib.parse import urlparse
+import json
+import time
+
+# Global cache for algorithm results: ndid -> (weight_hash, timestamp, sim_scores)
+SIMILARITY_CACHE = {}
+CACHE_TTL = 3600  # 1 hour in seconds
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://jrelling:bananas@localhost/jrelling' 
@@ -382,6 +388,10 @@ def view_user(ndid):
     if not back_url:
         back_url = url_for('home')
 
+    # Filter out edit profile page and other unwanted pages from back URL
+    if back_url and '/editprofile/' in back_url:
+        back_url = url_for('home')
+
     # print(f"Before Check: {back_url}")
 
     if re.match(r'^/user/\d{9}\?next=/home', back_url):
@@ -748,7 +758,7 @@ def add_member(group_id):
 
     ensure_member_or_404(group_id, NDID)  # only members can add others
 
-    new_NDID = (request.form.get('NDID') or "").strip()
+    new_NDID = (request.form.get('ndid') or request.form.get('NDID') or "").strip()
     if not new_NDID:
         return jsonify({"error": "NDID required"}), 400
     # must exist
@@ -885,10 +895,41 @@ def algorithm():
     n = request.args.get('n', default=None, type=int)
 
     try:
-        # sim_scores = return_similarities(NDID, engine, n=n)
         weights = load_user_weights(ndid, engine)
-        sim_scores = return_similarities_weighted(ndid, engine, weights, n=n)
-        print(f"[Algorithm] Found {len(sim_scores)} similar students for {ndid}")
+        
+        # Create a cache key based on user and weights
+        # Only use allowed keys to ensure consistency
+        cache_weights = {k: float(weights.get(k, 1.0)) for k in ["academics", "professional", "background"]}
+        weight_key = json.dumps(cache_weights, sort_keys=True)
+        
+        # Check cache for this user
+        cached_entry = SIMILARITY_CACHE.get(ndid)
+        now = time.time()
+        
+        if cached_entry:
+            cached_weight_key, cached_ts, cached_scores = cached_entry
+            if cached_weight_key == weight_key and (now - cached_ts < CACHE_TTL):
+                sim_scores = cached_scores
+                # If n is specified, we slice the cached results
+                if n is not None:
+                    sim_scores = sim_scores[:n]
+                # print(f"[Algorithm] Used cached results for {ndid}")
+            else:
+                cached_entry = None # Invalid or different weights
+        
+        if not cached_entry:
+            # Run algorithm
+            sim_scores = return_similarities_weighted(ndid, engine, weights, n=None) # Get all for caching
+            
+            # Update cache (only keep most recent per user)
+            SIMILARITY_CACHE[ndid] = (weight_key, now, sim_scores)
+            
+            # Apply n limit for current request if needed
+            if n is not None:
+                sim_scores = sim_scores[:n]
+            
+            print(f"[Algorithm] Computed and cached {len(sim_scores)} similar students for {ndid}")
+            
     except Exception as e:
         print(f"[Algorithm] Error for {ndid}: {e}")
         current_user = models.Student.query.get(ndid)

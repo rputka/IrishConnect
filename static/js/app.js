@@ -593,7 +593,7 @@ const SIMILARITY_WEIGHT_KEYS = new Set(["academics", "professional", "background
 // showing algorithm spinner overlay (in spinner.js)
 function showAlgorithmSpinner() {
   if (window.showAlgorithmSpinner) { window.showAlgorithmSpinner(); return; }
-  const overlay = document.getElementbyId("algorithm-spinner");
+  const overlay = document.getElementById("algorithm-spinner");
   if (overlay) overlay.style.display = "flex";
 }
 
@@ -633,11 +633,8 @@ window.applySimilarityPreferences = async function applySimilarityPreferences() 
   }
 
   // Re-run algorithm AFTER saving by reloading the algorithm page
-  if (window.location.pathname !== "/algorithm") {
-    window.location.href = "/algorithm";
-  } else {
-    window.location.reload();
-  }
+  // This ensures the algorithm uses the newly saved weights and resets to page 1
+  window.location.href = "/algorithm?page=1";
 };
 
 // Sliders no longer trigger algorithm automatically - only the button does
@@ -663,10 +660,6 @@ document.addEventListener("DOMContentLoaded", async function () {
     // If fetch fails, leave defaults; user can adjust sliders
   }
 
-  // Need to trigger algorithm reload on slider change (show spinner)
-  const onUpdate = () => window.applySimilarityPreferences();
-  inputs.forEach((inp) => {
-    inp.addEventListener("change", onUpdate);
-  })
+  // Sliders no longer trigger algorithm automatically - only the "Rerun Algorithm" button does
 });
 
